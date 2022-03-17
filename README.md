@@ -1,4 +1,4 @@
-# template-default-initiative-js
+# Media Quality
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/DP6/templates-centro-de-inovacoes/main/public/images/centro_de_inovacao_dp6.png" height="100px" />
@@ -10,9 +10,9 @@
   </a>
   <a href="https://www.codacy.com/gh/DP6/{{token-codacy}}/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DP6/{{repo}}&amp;utm_campaign=Badge_Coverage"><img alt="Code coverage" src="https://app.codacy.com/project/badge/Coverage/{{token-codacy}}"/></a>
   <a href="#badge">
-    <img alt="Test" src="https://github.com/dp6/template-default-initiative-js/actions/workflows/test.yml/badge.svg">
+    <img alt="Test" src="https://github.com/dp6/media-quality/actions/workflows/test.yml/badge.svg">
   </a>
-  <a href="https://www.codacy.com/gh/DP6/template-default-initiative-js/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DP6/template-default-initiative-js&amp;utm_campaign=Badge_Grade">
+  <a href="https://www.codacy.com/gh/DP6/media-quality/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DP6/media-quality&amp;utm_campaign=Badge_Grade">
     <img alt="Code quality" src="https://app.codacy.com/project/badge/Grade/{{token-codacy}}">
   </a>
 </p>
@@ -36,36 +36,6 @@
 </p>
 -->
 
-Respositório template para projetos NPM
-
-- Testes unitários
-- Formatação de código
-- Geração de documentação das funcões javascrip
-- Criação de release automatica
-- Cobertura de código
-- Analise de qualidade de código
-- Github pages com template do github.dp6.io
-
-## Renomeando arquivos
-
-- Substituir o nome `template-default-initiative-js` pelo nome do novo repositório criado no arquivo package.json
-- Substituir a chave `{{nome_projeto}}` no arquivo `_config.yml` com o nome do projeto em linguagem natural, para ser usado como titulo da página no site.
-- No README.md as chaves `{{token-codacy}}` e `{{repo}}` localizada no cabecalho do documento dentro do comentário nas linhas 20-37 deve ser substituida pelo token do projeto no codacy.io e novo nome do repositório.
-
-## Teste
-
-WIP
-
-## Entendendo os running do NPM
-
-- test
-- format
-- doc
-- lint
-- coverage
-
-WIP
-
 ## 1. Requisitos para utilização
 
 - Node
@@ -82,7 +52,7 @@ Só serão aceitas contribuições que estiverem seguindo os seguintes requisito
 
 ### Api Docs
 
-- [Index.js](https://github.com/dp6/template-default-initiative-js/blob/master/docs/index.md)
+- [Index.js](https://github.com/dp6/media-quality/blob/master/docs/index.md)
 
 ## Suporte:
 
