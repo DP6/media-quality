@@ -11,13 +11,88 @@ const { assert } = require('chai');
 const chai = require('chai');
 const expect = chai.expect;
 const uuid = require('uuid');
+process.env.PROJECT_BUCKET_GCS = 'teste-raft-suite';
 
-const index = require('./../../index');
+const cloudFunction = require('./../../index');
 
 describe('Template Cloud Function', () => {
   describe('#templateCf()', () => {
     it('Deve ser uma function', () => {
-      assert.isFunction(index.templateCf);
+      assert.isFunction(cloudFunction.templateCf);
+    });
+    it('Deve processar req e resp retornando http status code 400', async () => {
+      const req = {
+        query: {},
+        body: {
+          id: uuid.v4(),
+        },
+      };
+
+      let tmpResponse = { status: '' };
+      let tmpFunctionStatus = (s) => {
+        tmpResponse.status = s;
+      };
+      const res = {
+        set: () => {},
+        sendStatus: tmpFunctionStatus,
+        send: tmpFunctionStatus,
+        status: (s) => {
+          tmpFunctionStatus(s);
+          return { send: () => {} };
+        },
+      };
+
+      await cloudFunction.templateCf(req, res);
+      assert.strictEqual(tmpResponse.status, 400);
+    });
+    it('Deve processar req e resp retornando http status code 200', async () => {
+      const req = {
+        query: {},
+        method: 'OPTIONS',
+        body: {
+          id: uuid.v4(),
+        },
+      };
+
+      let tmpResponse = { status: '' };
+      let tmpFunctionStatus = (s) => {
+        tmpResponse.status = s;
+      };
+      const res = {
+        set: () => {},
+        sendStatus: tmpFunctionStatus,
+        send: tmpFunctionStatus,
+      };
+
+      await cloudFunction.templateCf(req, res);
+      assert.strictEqual(tmpResponse.status, 204);
+    });
+    it('Deve processar req e resp retornando http status code 200', async () => {
+      const req = {
+        query: { schema: 'global' },
+        body: [
+          {
+            usuario: { idUsuario: '24413751' },
+          },
+        ],
+      };
+
+      let tmpResponse = { status: '' };
+      let tmpFunctionStatus = (s) => {
+        tmpResponse.status = s;
+      };
+      const res = {
+        set: () => {},
+        sendStatus: tmpFunctionStatus,
+        send: tmpFunctionStatus,
+        status: (s) => {
+          tmpFunctionStatus(s);
+          return { send: () => {} };
+        },
+      };
+
+      await cloudFunction.templateCf(req, res);
+      assert.strictEqual(tmpResponse.status, 200);
     });
   });
 
@@ -27,16 +102,16 @@ describe('Template Cloud Function', () => {
     let string = 'teste';
 
     it('Deve ser uma function', () => {
-      assert.isFunction(index.createSchemaBq);
+      assert.isFunction(cloudFunction.createSchemaBq);
     });
     it('Deve retornar um array com objetos', () => {
-      expect(index.createSchemaBq(array, obj, string)).to.be.an('array').that.not.empty;
+      expect(cloudFunction.createSchemaBq(array, obj, string)).to.be.an('array').that.not.empty;
     });
     it('Array deve ter objeto com a propriedade data', () => {
-      expect(index.createSchemaBq(array, obj, string)[0]).to.have.own.property('data');
+      expect(cloudFunction.createSchemaBq(array, obj, string)[0]).to.have.own.property('data');
     });
     it('Array deve ter objeto com a propriedade schema', () => {
-      expect(index.createSchemaBq(array, obj, string)[1]).to.have.own.property('schema');
+      expect(cloudFunction.createSchemaBq(array, obj, string)[1]).to.have.own.property('schema');
     });
   });
 
@@ -44,20 +119,20 @@ describe('Template Cloud Function', () => {
     let patternTimestamp = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})$/;
     let obj = { attr: 'attr' };
     it('Deve ser uma function', () => {
-      assert.isFunction(index.addTimestamp);
+      assert.isFunction(cloudFunction.addTimestamp);
     });
 
     it('Deve possuir o atributo data', () => {
-      expect(index.addTimestamp(obj)).to.have.own.property('data');
+      expect(cloudFunction.addTimestamp(obj)).to.have.own.property('data');
     });
     it('Data deve estar no padrão yyyy-mm-ddThh:mm:ss', () => {
-      expect(patternTimestamp.test(index.addTimestamp(obj).data)).to.be.true;
+      expect(patternTimestamp.test(cloudFunction.addTimestamp(obj).data)).to.be.true;
     });
   });
 
   describe('#loadProjectConfig()', () => {
     it('Deve retornar o objeto de configuração', async () => {
-      expect(await index.loadProjectConfig()).to.have.own.property('DEPARA_SCHEMA');
+      expect(await cloudFunction.loadProjectConfig()).to.have.own.property('DEPARA_SCHEMA');
     });
   });
 });

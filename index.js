@@ -1,4 +1,7 @@
-const fs = require('fs');
+const { BigQuery } = require('@google-cloud/bigquery');
+const { Storage } = require('@google-cloud/storage');
+const BUCKET_GCS = process.env.PROJECT_BUCKET_GCS;
+const PROJECT_FOLDER = 'project-name';
 let projectConfig = {};
 let debugging = false;
 
@@ -39,7 +42,7 @@ const templateCf = async (req, res) => {
     );
 
     trace('RESULT VALID', result);
-    insertRowsAsStream(result);
+    insertRowsAsStream(result, projectConfig.BQ_SCHEMA_RAWDATA, projectConfig.BQ_TABLE_ID_RAWDATA);
     res.status(200).send(debugging ? { debugging: debugging, result: result } : 'sucesso!');
   }
 };
@@ -78,21 +81,20 @@ function addTimestamp(data) {
 /**
  * Realiza a persistências dos dados por Stream no BigQuery
  * @param {Array} data Dados estruturados no padrão de persistência do BQ
+ * @param {String} schema Schema da tabela do BQ
+ * @param {String} tableId Nome da tabela do BQ
  */
-async function insertRowsAsStream(data) {
+async function insertRowsAsStream(data, schema, tableId) {
   const bigquery = new BigQuery();
   const options = {
-    schema: projectConfig.BQ_SCHEMA_RAWDATA,
+    schema: schema,
     skipInvalidRows: true,
     ignoreUnknownValues: true,
   };
 
   trace(data);
   // Insert data into a table
-  await bigquery
-    .dataset(projectConfig.BQ_DATASET_ID)
-    .table(projectConfig.BQ_TABLE_ID_RAWDATA)
-    .insert(data, options, insertHandler);
+  await bigquery.dataset(projectConfig.BQ_DATASET_ID).table(tableId).insert(data, options, insertHandler);
 
   console.log(`Inserted ${data.length} rows`);
 }
@@ -101,7 +103,13 @@ async function insertRowsAsStream(data) {
  * Carrega o arquivo de configuração armazenado no GCS
  */
 async function loadProjectConfig() {
-  return JSON.parse(fs.readFileSync('./config.json'));
+  const storage = new Storage();
+  const bucket = storage.bucket(BUCKET_GCS);
+
+  let file = bucket.file(`${PROJECT_FOLDER}/config.json`);
+  let projectConfig = (await file.download())[0].toString();
+
+  return JSON.parse(projectConfig);
 }
 
 function insertHandler(err, apiResponse) {

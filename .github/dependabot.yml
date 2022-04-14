@@ -11,3 +11,6 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    ignore:
+      - dependency-name: 'request'
+        versions: '2.x'
