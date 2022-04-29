@@ -25,19 +25,18 @@ A solução de _Media Quality_ tem como objetivo acompanhar a volumetria de disp
 
 Dados que serão enviados na ferramenta escolhida.
 
-Dado coletado | Parâmetro
---- | --- 
-media_name | Nome da mídia que foi disparada
-tracking_id | Id de acompanhamento da mídia disparada
-media_event | Nome do evento disparado
-tag_name | Nome completo da tag disparada no GTM
-status | Status de disparo da tag
-datalayer_event | Nome do evento do DataLayer que acionou a tag
+| Dado coletado   | Parâmetro                                     |
+| --------------- | --------------------------------------------- |
+| media_name      | Nome da mídia que foi disparada               |
+| tracking_id     | Id de acompanhamento da mídia disparada       |
+| media_event     | Nome do evento disparado                      |
+| tag_name        | Nome completo da tag disparada no GTM         |
+| status          | Status de disparo da tag                      |
+| datalayer_event | Nome do evento do DataLayer que acionou a tag |
 
 **Parâmetros adicionais:**
 
 Os parâmetros adicionais serão enviados com o nome específico adicionado na tag do Media Quality do GTM.
-
 
 ## Como configurar?
 
