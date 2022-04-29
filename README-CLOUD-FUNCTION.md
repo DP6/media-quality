@@ -1,0 +1,1 @@
+# Configuração com o uso da Cloud Function
