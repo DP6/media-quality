@@ -1,7 +1,3 @@
-<div align="center">
-<img src="https://raw.githubusercontent.com/DP6/templates-centro-de-inovacoes/main/public/images/centro_de_inovacao_dp6.png" height="100px" />
-</div>
-
 # Configuração com o uso da Cloud Function
 
 Para enviar os dados dos eventos para o Big Query utilizando Cloud Functions é necessário realizar os passos a seguir:
@@ -14,7 +10,7 @@ Para enviar os dados dos eventos para o Big Query utilizando Cloud Functions é 
 Após habilitar na tag o "Endpoint de destino" como Cloud Function deve-se inserir a URL conforme a imagem abaixo (Figura 1).
 
 <div align="center">
-<img src="./images/tag-config.png" height="auto" />
+<img src="./documentation-images/tag-config.png" height="auto" />
 <figcaption>Figura 1 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
@@ -25,7 +21,7 @@ Para criar a tabela acesse o GCP (Google Cloud Plataform) e crie um dataset com 
 
 As colunas criadas na tabela são:
 
-| Nome da Coluna   | Descrição                                |
+| Nome da Coluna  | Descrição                                     |
 | --------------- | --------------------------------------------- |
 | media_name      | Nome da mídia que foi disparada               |
 | tracking_id     | Id de acompanhamento da mídia disparada       |
@@ -33,6 +29,7 @@ As colunas criadas na tabela são:
 | tag_name        | Nome completo da tag disparada no GTM         |
 | status          | Status de disparo da tag                      |
 | datalayer_event | Nome do evento do DataLayer que acionou a tag |
+| timestamp       | Data e hora do registro                       |
 
 
 Ao criar a tabela selecione a opção para realizar o particionamento diário dos dados utilizando a coluna `timestamp`. O código abaixo contém um JSON com o esquema da tabela criada.
