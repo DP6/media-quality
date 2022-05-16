@@ -109,57 +109,67 @@ As informações provenientes da URL são organizadas em um dicionário após a 
 
 ```javascript
 // Import the Google Cloud client library
-const { BigQuery } = require('@google-cloud/bigquery');
+const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
+// Secret of cloud function
+const secret = process.env.SECRET;
 
-// Select what kind of data req.body contains. If the data
+// Select what kind of data req.body contains. If the data 
 // comes from sendPixel method (used on GTM custom template) use "url" else use "json"
 const input_option = 'json'; // url ou json
 
 async function insertRowsAsStream(request, input_option) {
-  const datasetId = 'mediaQualityDataset';
-  const tableId = 'raw_data';
-  var json_data;
 
-  if (input_option == 'url') {
-    const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
+    const datasetId = 'mediaQualityDataset';
+    const tableId = 'raw_data';
+    var json_data; 
 
-    json_data = {
-      media_name: url.match('media_name=([^&]+)')[1],
-      tracking_id: url.match('tracking_id=([^&]+)')[1],
-      media_event: url.match('media_event=([^&]+)')[1],
-      tag_name: url.match('tag_name=([^&]+)')[1],
-      status: url.match('status=([^&]+)')[1],
-      datalayer_event: url.match('datalayer_event=([^&]+)')[1],
-      timestamp: Date.now() / 1000,
-    };
-  }
-
-  if (input_option == 'json') {
-    try {
-      // Parse a JSON
-      json_data = JSON.parse(request.body);
-    } catch (e) {
-      json_data = request.body;
+    if (input_option == "url"){
+      const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
+ 
+      json_data = {
+        media_name: url.match("media_name=([^&]+)")[1],
+        tracking_id: url.match("tracking_id=([^&]+)")[1],
+        media_event: url.match("media_event=([^&]+)")[1],
+        tag_name: url.match("tag_name=([^&]+)")[1],
+        status: url.match("status=([^&]+)")[1],
+        datalayer_event: url.match("datalayer_event=([^&]+)")[1],
+        timestamp: Date.now() / 1000
+      };
     }
 
-    json_data['timestamp'] = Date.now() / 1000;
+    if (input_option == "json"){
+      try {
+        // Parse a JSON
+        json_data = JSON.parse(request.body); 
+      } catch (e) {
+        json_data = request.body;
+      }
+
+      json_data["timestamp"] = Date.now() /1000;
+
+    }
+    
+    
+    console.log("Enviando payload: ", json_data);
+    // Insert data into a table
+    await bigquery
+      .dataset(datasetId)
+      .table(tableId)
+      .insert(json_data);
+    console.log(`Inserted rows`);
   }
 
-  console.log('Enviando payload: ', json_data);
-  // Insert data into a table
-  await bigquery.dataset(datasetId).table(tableId).insert(json_data);
-  console.log(`Inserted rows`);
-}
-
-exports.gtm_monitor = (req, res) => {
-  if (req.body) {
-    insertRowsAsStream(req, input_option);
-    console.log('Processo finalizado...');
-    res.sendStatus(200);
-  } else {
-    console.log('Requisição inválida');
-  }
+exports.gtm_monitor = (req, res) =>{
+    if(req.body && req.headers.authorization == secret){
+      insertRowsAsStream(req, input_option);
+      console.log("Requisição recebida com sucesso...");
+      res.sendStatus(200);
+    } else
+    {
+      console.log("Requisição inválida. Verifique o payload ou o secret...");
+      res.sendStatus(403);
+    }
 };
 ```
 
@@ -264,8 +274,34 @@ function(){
   return CustomFetch;
 }
 ```
+## Imagens da Implementação da Cloud Function
+Para criar a Cloud function acesse o console do Google Cloud e clique em `Create Function` (Figura 1).
+<img src="./documentation-images/nova-cloud-function.PNG" height="auto" />
+<figcaption>Figura 1 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
+</div>
 
-## Imagens da Implementação
+Na etapa de configuração selecione `Allow unauthenticated invocations` e marque `Require HTTPS` 
+
+<img src="./documentation-images/requesttype-cloud-function.PNG" height="auto" />
+<figcaption>Figura 2 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
+</div>
+
+Crie uma variável de ambiente com o nome `SECRET` e adicione o segredo.
+
+<img src="./documentation-images/secret-cloud-function.PNG" height="auto" />
+<figcaption>Figura 3 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
+</div>
+
+Na aba de permissões deve `allUsers` deve possuir o papel `Cloud Functions Invoker`
+
+<img src="./documentation-images/permission-cloud-function.PNG" height="auto" />
+<figcaption>Figura 4 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
+</div>
+
+
+## Imagens da Implementação no GTM
+
+
 
 ### Passo 1: Criação da variável javascript
 
@@ -273,12 +309,14 @@ Criação de variável javascript com o código responsável pelas requisições
 
 <div align="center">
 <img src="./documentation-images/custom-javascript-fetch.PNG" height="auto" />
-<figcaption>Figura 1 - Criação de custom javascript com a função fetch.</figcaption>
+<figcaption>Figura 5 - Criação de custom javascript com a função fetch.</figcaption>
 </div>
 
-Após habilitar na tag o "Endpoint de destino" como Cloud Function deve-se inserir a URL de trigger da Cloud Function, a variável javascript criada anteriormente e um segredo a ser adicionado na requisição HTTP (ainda em desenvolvimento), conforme o exemplo abaixo (Figura 2).
+### Passo 2: Configuração da TAG no GTM
+
+Após habilitar na tag o "Endpoint de destino" como Cloud Function deve-se inserir a URL de trigger da Cloud Function, a variável javascript criada anteriormente e um segredo (é o secret da cloud function) a ser adicionado na requisição HTTP, conforme o exemplo abaixo (Figura 2).
 
 <div align="center">
 <img src="./documentation-images/tag-configuration-2.png" height="auto" />
-<figcaption>Figura 2 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
+<figcaption>Figura 6 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
