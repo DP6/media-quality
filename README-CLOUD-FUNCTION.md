@@ -84,7 +84,8 @@ Para criar a Cloud Function acesse o [GCP](https://console.cloud.google.com/func
 A function recebe uma requisição HTTP que pode conter dados em JSON ou uma URL com query params. Para selecionar uma das opções é preciso alterar o valor da constante `input_option` localidada nas primeiras linhas de código.
 
 Os dados em formato JSON recebidos pela function estão no seguinte formato:
-``` javascript
+
+```javascript
 {
     "media_name": "media_name",
     "tracking_id": 123,
@@ -97,78 +98,74 @@ Os dados em formato JSON recebidos pela function estão no seguinte formato:
 ```
 
 Caso os dados recebidos pelo Cloud Function seja uma URL ela será do seguinte formato:
+
 ```
 https://{{URL da Cloud Function}}/?media_name={{media_name}}&tracking_id={{tracking_id}}&media_event={{media_event}} ...
 ```
+
 As informações provenientes da URL são organizadas em um dicionário após a extração por meio de expressões regulares. Posteriormente os dados são enviados para o Big Query.
 
-
 **index.js**
-``` javascript
+
+```javascript
 // Import the Google Cloud client library
-const {BigQuery} = require('@google-cloud/bigquery');
+const { BigQuery } = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 
-// Select what kind of data req.body contains. If the data 
+// Select what kind of data req.body contains. If the data
 // comes from sendPixel method (used on GTM custom template) use "url" else use "json"
 const input_option = 'json'; // url ou json
 
 async function insertRowsAsStream(request, input_option) {
+  const datasetId = 'mediaQualityDataset';
+  const tableId = 'raw_data';
+  var json_data;
 
-    const datasetId = 'mediaQualityDataset';
-    const tableId = 'raw_data';
-    var json_data; 
+  if (input_option == 'url') {
+    const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
 
-    if (input_option == "url"){
-      const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
- 
-      json_data = {
-        media_name: url.match("media_name=([^&]+)")[1],
-        tracking_id: url.match("tracking_id=([^&]+)")[1],
-        media_event: url.match("media_event=([^&]+)")[1],
-        tag_name: url.match("tag_name=([^&]+)")[1],
-        status: url.match("status=([^&]+)")[1],
-        datalayer_event: url.match("datalayer_event=([^&]+)")[1],
-        timestamp: Date.now() / 1000
-      };
-    }
-
-    if (input_option == "json"){
-      try {
-        // Parse a JSON
-        json_data = JSON.parse(request.body); 
-      } catch (e) {
-        json_data = request.body;
-      }
-
-      json_data["timestamp"] = Date.now() /1000;
-
-    }
-    
-    
-    console.log("Enviando payload: ", json_data);
-    // Insert data into a table
-    await bigquery
-      .dataset(datasetId)
-      .table(tableId)
-      .insert(json_data);
-    console.log(`Inserted rows`);
+    json_data = {
+      media_name: url.match('media_name=([^&]+)')[1],
+      tracking_id: url.match('tracking_id=([^&]+)')[1],
+      media_event: url.match('media_event=([^&]+)')[1],
+      tag_name: url.match('tag_name=([^&]+)')[1],
+      status: url.match('status=([^&]+)')[1],
+      datalayer_event: url.match('datalayer_event=([^&]+)')[1],
+      timestamp: Date.now() / 1000,
+    };
   }
 
-exports.gtm_monitor = (req, res) =>{
-    
-    if(req.body){
-      insertRowsAsStream(req, input_option);
-      console.log("Processo finalizado...");
-      res.sendStatus(200);
-    } else
-    {
-        console.log("Requisição inválida");
+  if (input_option == 'json') {
+    try {
+      // Parse a JSON
+      json_data = JSON.parse(request.body);
+    } catch (e) {
+      json_data = request.body;
     }
+
+    json_data['timestamp'] = Date.now() / 1000;
+  }
+
+  console.log('Enviando payload: ', json_data);
+  // Insert data into a table
+  await bigquery.dataset(datasetId).table(tableId).insert(json_data);
+  console.log(`Inserted rows`);
+}
+
+exports.gtm_monitor = (req, res) => {
+  if (req.body) {
+    insertRowsAsStream(req, input_option);
+    console.log('Processo finalizado...');
+    res.sendStatus(200);
+  } else {
+    console.log('Requisição inválida');
+  }
 };
 ```
+
 **package.json**
-``` javascript
+
+```javascript
 {
     "name": "send-from-gtm-2-bq",
     "version": "1.0.0",
@@ -181,8 +178,6 @@ exports.gtm_monitor = (req, res) =>{
   }
 ```
 
-
-
 ## Adequação do custom template para envio de requisições para a Cloud Function
 
 Existem duas maneiras de enviar os dados para a Cloud Function, uma utilizando o método `sendPixel` e a outra utizando `Fetch`.
@@ -193,11 +188,11 @@ O sendPixel é utilizado para realizar requisições do tipo GET. Ela recebe com
 
 ### Opção 2: Fetch
 
-O `fetch` permite realizar requisições do tipo POST e o envio de dados no formato JSON. No GTM deve-se criar uma variável do tipo custom javascript e inserir a função responsável pela requisição. Na tag do GTM o campo `sendFetchReference` deve ser preenchido com a variável criada. 
-
+O `fetch` permite realizar requisições do tipo POST e o envio de dados no formato JSON. No GTM deve-se criar uma variável do tipo custom javascript e inserir a função responsável pela requisição. Na tag do GTM o campo `sendFetchReference` deve ser preenchido com a variável criada.
 
 **Código javascript utilizado no template de Media Quality (GTM)**
-``` javascript
+
+```javascript
 ...
 
 const encodeUri = require('encodeUri');
@@ -205,19 +200,19 @@ const sendPixel = require('sendPixel');
 const sendRequestFetch = data.sendFetchReference;
 const requestSecret = data.requestSecret;
 
-...        
+...
 function fetchToCF(method) {
   // URL da cloud function
   const endpoint = data.cfEndpoint;
-  
+
   addEventCallback(function(containerId, eventData) {
-    
+
     const tagData = eventData.tags.filter(t => t.exclude === 'false');
-    
+
     for (let i in tagData) {
-      
+
       let entry = tagData[i];
-      
+
       let midia_params = {
             media_name: entry.name.split(' - ')[0].split(' (')[0],
             tracking_id: entry.tracking_id,
@@ -226,26 +221,26 @@ function fetchToCF(method) {
             status: entry.status,
             datalayer_event: event
         };
-      
-      
+
+
       if(method =='sendpixel'){
         // Montagem da URL da requisição
         var url = "";
-      
+
         for (let item in midia_params) {
         url += '&' + item + '=' + midia_params[item];
         }
 
         url = endpoint+ "/?" + encodeUri(url);
-        // Envia requisição utilizando sendPixel 
+        // Envia requisição utilizando sendPixel
         sendPixel(url,null,null);
-        
-      } 
-      
+
+      }
+
       if(method == 'fetch'){
         // Envia requisição utilizando fetch
         sendRequestFetch(endpoint, midia_params, requestSecret);
-         
+
       }
     }
   });
@@ -254,36 +249,32 @@ function fetchToCF(method) {
 ...
 ```
 
-
-
 **Função Fetch (utilizada na custom javascript variable do GTM)**
 
-``` javascript
+```javascript
 function(){
-  function CustomFetch(endpoint, payload, secret){ 
+  function CustomFetch(endpoint, payload, secret){
     fetch(endpoint, {
     method: "POST",
     mode: 'no-cors',
     body: JSON.stringify(payload),
     headers: {'Content-Type': 'application/json', 'Authorization': secret}
-    });    
+    });
   }
   return CustomFetch;
 }
 ```
 
-
-
 ## Imagens da Implementação
 
 ### Passo 1: Criação da variável javascript
+
 Criação de variável javascript com o código responsável pelas requisições HTTP. Caso seja utilizada a outra forma de envio de dados (sendPixel) não é necessário criar essa variável.
+
 <div align="center">
 <img src="./documentation-images/custom-javascript-fetch.PNG" height="auto" />
 <figcaption>Figura 1 - Criação de custom javascript com a função fetch.</figcaption>
 </div>
-
-
 
 Após habilitar na tag o "Endpoint de destino" como Cloud Function deve-se inserir a URL de trigger da Cloud Function, a variável javascript criada anteriormente e um segredo a ser adicionado na requisição HTTP (ainda em desenvolvimento), conforme o exemplo abaixo (Figura 2).
 
@@ -291,8 +282,3 @@ Após habilitar na tag o "Endpoint de destino" como Cloud Function deve-se inser
 <img src="./documentation-images/tag-configuration-2.png" height="auto" />
 <figcaption>Figura 2 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
-
-
-
-
-
