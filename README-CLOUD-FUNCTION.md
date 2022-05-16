@@ -109,67 +109,60 @@ As informações provenientes da URL são organizadas em um dicionário após a 
 
 ```javascript
 // Import the Google Cloud client library
-const {BigQuery} = require('@google-cloud/bigquery');
+const { BigQuery } = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 // Secret of cloud function
 const secret = process.env.SECRET;
 
-// Select what kind of data req.body contains. If the data 
+// Select what kind of data req.body contains. If the data
 // comes from sendPixel method (used on GTM custom template) use "url" else use "json"
 const input_option = 'json'; // url ou json
 
 async function insertRowsAsStream(request, input_option) {
+  const datasetId = 'mediaQualityDataset';
+  const tableId = 'raw_data';
+  var json_data;
 
-    const datasetId = 'mediaQualityDataset';
-    const tableId = 'raw_data';
-    var json_data; 
+  if (input_option == 'url') {
+    const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
 
-    if (input_option == "url"){
-      const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
- 
-      json_data = {
-        media_name: url.match("media_name=([^&]+)")[1],
-        tracking_id: url.match("tracking_id=([^&]+)")[1],
-        media_event: url.match("media_event=([^&]+)")[1],
-        tag_name: url.match("tag_name=([^&]+)")[1],
-        status: url.match("status=([^&]+)")[1],
-        datalayer_event: url.match("datalayer_event=([^&]+)")[1],
-        timestamp: Date.now() / 1000
-      };
-    }
-
-    if (input_option == "json"){
-      try {
-        // Parse a JSON
-        json_data = JSON.parse(request.body); 
-      } catch (e) {
-        json_data = request.body;
-      }
-
-      json_data["timestamp"] = Date.now() /1000;
-
-    }
-    
-    
-    console.log("Enviando payload: ", json_data);
-    // Insert data into a table
-    await bigquery
-      .dataset(datasetId)
-      .table(tableId)
-      .insert(json_data);
-    console.log(`Inserted rows`);
+    json_data = {
+      media_name: url.match('media_name=([^&]+)')[1],
+      tracking_id: url.match('tracking_id=([^&]+)')[1],
+      media_event: url.match('media_event=([^&]+)')[1],
+      tag_name: url.match('tag_name=([^&]+)')[1],
+      status: url.match('status=([^&]+)')[1],
+      datalayer_event: url.match('datalayer_event=([^&]+)')[1],
+      timestamp: Date.now() / 1000,
+    };
   }
 
-exports.gtm_monitor = (req, res) =>{
-    if(req.body && req.headers.authorization == secret){
-      insertRowsAsStream(req, input_option);
-      console.log("Requisição recebida com sucesso...");
-      res.sendStatus(200);
-    } else
-    {
-      console.log("Requisição inválida. Verifique o payload ou o secret...");
-      res.sendStatus(403);
+  if (input_option == 'json') {
+    try {
+      // Parse a JSON
+      json_data = JSON.parse(request.body);
+    } catch (e) {
+      json_data = request.body;
     }
+
+    json_data['timestamp'] = Date.now() / 1000;
+  }
+
+  console.log('Enviando payload: ', json_data);
+  // Insert data into a table
+  await bigquery.dataset(datasetId).table(tableId).insert(json_data);
+  console.log(`Inserted rows`);
+}
+
+exports.gtm_monitor = (req, res) => {
+  if (req.body && req.headers.authorization == secret) {
+    insertRowsAsStream(req, input_option);
+    console.log('Requisição recebida com sucesso...');
+    res.sendStatus(200);
+  } else {
+    console.log('Requisição inválida. Verifique o payload ou o secret...');
+    res.sendStatus(403);
+  }
 };
 ```
 
@@ -274,13 +267,16 @@ function(){
   return CustomFetch;
 }
 ```
+
 ## Imagens da Implementação da Cloud Function
+
 Para criar a Cloud function acesse o console do Google Cloud e clique em `Create Function` (Figura 1).
 <img src="./documentation-images/nova-cloud-function.PNG" height="auto" />
+
 <figcaption>Figura 1 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
-Na etapa de configuração selecione `Allow unauthenticated invocations` e marque `Require HTTPS` 
+Na etapa de configuração selecione `Allow unauthenticated invocations` e marque `Require HTTPS`
 
 <img src="./documentation-images/requesttype-cloud-function.PNG" height="auto" />
 <figcaption>Figura 2 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
@@ -298,10 +294,7 @@ Na aba de permissões deve `allUsers` deve possuir o papel `Cloud Functions Invo
 <figcaption>Figura 4 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
-
 ## Imagens da Implementação no GTM
-
-
 
 ### Passo 1: Criação da variável javascript
 
