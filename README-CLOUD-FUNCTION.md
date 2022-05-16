@@ -279,7 +279,7 @@ function(){
 ### Passo 1: Criação da variável javascript
 Criação de variável javascript com o código responsável pelas requisições HTTP. Caso seja utilizada a outra forma de envio de dados (sendPixel) não é necessário criar essa variável.
 <div align="center">
-<img src="./documentation-images/custom-javascript-fetch.png" height="auto" />
+<img src="./documentation-images/custom-javascript-fetch.PNG" height="auto" />
 <figcaption>Figura 1 - Criação de custom javascript com a função fetch.</figcaption>
 </div>
 
