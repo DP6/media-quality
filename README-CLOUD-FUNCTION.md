@@ -27,56 +27,55 @@ Ao criar a tabela selecione a opção para realizar o particionamento diário do
 ```javascript
 // Esquema da tabela criada no Big Query
 [
-  {
-    name: 'media_name',
-    type: 'STRING',
-    mode: 'NULLABLE',
-    description: 'Nome da midia que foi disparada',
-    maxLength: '100',
-  },
-  {
-    name: 'tracking_id',
-    type: 'INTEGER',
-    mode: 'NULLABLE',
-    description: 'Id de acompanhamento da midia disparada',
-  },
-  {
-    name: 'media_event',
-    type: 'STRING',
-    mode: 'NULLABLE',
-    description: 'Nome do evento disparado',
-    maxLength: '100',
-  },
-  {
-    name: 'tag_name',
-    type: 'STRING',
-    mode: 'NULLABLE',
-    description: 'Nome completo da tag disparada no GTM',
-    maxLength: '100',
-  },
-  {
-    name: 'status',
-    type: 'STRING',
-    mode: 'NULLABLE',
-    description: 'Status de disparo da tag',
-    maxLength: '50',
-  },
-  {
-    name: 'datalayer_event',
-    type: 'STRING',
-    mode: 'NULLABLE',
-    description: 'Nome do evento do DataLayer que acionou a tag',
-    maxLength: '100',
-  },
-  {
-    name: 'timestamp',
-    type: 'TIMESTAMP',
-    mode: 'REQUIRED',
-    description: 'Data e hora do registro',
-  },
-];
+    {
+        "name": "media_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome da midia que foi disparada",
+        "maxLength": "100"
+    },
+    {
+        "name": "tracking_id",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Id de acompanhamento da midia disparada"
+    },
+    {
+        "name": "media_event",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome do evento disparado",
+        "maxLength": "100"
+    },
+    {
+        "name": "tag_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome completo da tag disparada no GTM",
+        "maxLength": "100"
+    },
+    {
+        "name": "status",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Status de disparo da tag",
+        "maxLength": "50"
+    },
+    {
+        "name": "datalayer_event",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome do evento do DataLayer que acionou a tag",
+        "maxLength": "100"
+    },
+    {
+        "name": "timestamp",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED",
+        "description": "Data e hora do registro"
+    }
+]
 ```
-
 <br>
 
 ## Criação de Cloud Function
@@ -140,14 +139,14 @@ async function insertRowsAsStream(request, input_option) {
     };
   }
 
-<<<<<<< HEAD
+
     const datasetId = 'dp6_media_quality';
     const tableId = 'media-quality-raw';
-    var json_data;
+    var json_data; 
 
     if (input_option == "url"){
       const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
-
+ 
       json_data = {
         media_name: url.match("media_name=([^&]+)")[1],
         tracking_id: url.match("tracking_id=([^&]+)")[1],
@@ -157,14 +156,14 @@ async function insertRowsAsStream(request, input_option) {
         datalayer_event: url.match("datalayer_event=([^&]+)")[1],
         timestamp: Date.now() / 1000
       };
-=======
+
   if (input_option == 'json') {
     try {
       // Parse a JSON
       json_data = JSON.parse(request.body);
     } catch (e) {
       json_data = request.body;
->>>>>>> 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
+
     }
 
     json_data['timestamp'] = Date.now() / 1000;
@@ -185,7 +184,7 @@ exports.gtm_monitor = (req, res) => {
     console.log('Requisição inválida. Verifique o payload ou o secret...');
     res.sendStatus(403);
   }
-<<<<<<< HEAD
+
 
 exports.gtm_monitor = (req, res) =>{
     //console.log("BODY="+ req.body);
@@ -201,8 +200,7 @@ exports.gtm_monitor = (req, res) =>{
       console.log("Requisição inválida. Verifique o payload ou o secret...");
       res.sendStatus(403);
     }
-=======
->>>>>>> 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
+
 };
 ```
 
@@ -220,7 +218,6 @@ exports.gtm_monitor = (req, res) =>{
     "license": "ISC"
   }
 ```
-
 <br>
 
 ## Adequação do custom template para envio de requisições para a Cloud Function
@@ -248,15 +245,15 @@ const sendRequestFetch = data.sendFetchReference;
 function fetchToCF(method) {
   // URL da cloud function
   const endpoint = data.cfEndpoint;
-
+  
   addEventCallback(function(containerId, eventData) {
-
+    
     const tagData = eventData.tags.filter(t => t.exclude === 'false');
-
+    
     for (let i in tagData) {
-
+      
       let entry = tagData[i];
-
+      
       let midia_params = {
             media_name: entry.name.split(' - ')[0].split(' (')[0],
             tracking_id: entry.tracking_id,
@@ -265,26 +262,26 @@ function fetchToCF(method) {
             status: entry.status,
             datalayer_event: event
         };
-
-
+      
+      
       if(method =='sendpixel'){
         // Montagem da URL da requisição
         var url = "";
-
+      
         for (let item in midia_params) {
         url += '&' + item + '=' + midia_params[item];
         }
 
         url = endpoint+ "/?" + encodeUri(url);
-        // Envia requisição utilizando sendPixel
+        // Envia requisição utilizando sendPixel 
         sendPixel(url,null,null);
-
-      }
-
+        
+      } 
+      
       if(method == 'fetch'){
         // Envia requisição utilizando fetch
         sendRequestFetch(endpoint, midia_params);
-
+         
       }
     }
   });
@@ -309,11 +306,8 @@ function(){
 }
 ```
 
-<<<<<<< HEAD
 <br>
-=======
 
-> > > > > > > 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
 
 ## Imagens da Implementação da Cloud Function
 
@@ -335,18 +329,14 @@ Crie uma variável de ambiente com o nome `REQUEST_ORIGIN` e adicione as URLs da
 <figcaption>Figura 3 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
+
 Na aba de permissões, `allUsers` deve possuir o papel `Cloud Functions Invoker`
 
 <img src="./documentation-images/permission-cloud-function.PNG" height="auto" />
 <figcaption>Figura 4 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
-<<<<<<< HEAD
 <br>
-
-=======
-
-> > > > > > > 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
 
 ## Imagens da Implementação no GTM
 
