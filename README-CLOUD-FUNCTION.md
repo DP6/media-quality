@@ -8,7 +8,7 @@ Para enviar os dados dos eventos para o Big Query utilizando Cloud Functions é 
 
 ## Criação de dataset e tabela no Big Query
 
-Para criar a tabela acesse o GCP (Google Cloud Plataform) e crie um dataset com o nome `mediaQualityDataset` e uma tabela com o nome `raw_data`.
+Para criar a tabela acesse o GCP (Google Cloud Plataform) e crie um dataset com o nome `dp6_media_quality` e uma tabela com o nome `media-quality-raw`.
 
 As colunas criadas na tabela são:
 
@@ -27,61 +27,62 @@ Ao criar a tabela selecione a opção para realizar o particionamento diário do
 ```javascript
 // Esquema da tabela criada no Big Query
 [
-  {
-    description: 'Nome da m\u00eddia que foi disparada',
-    maxLength: '100',
-    mode: 'NULLABLE',
-    name: 'media_name',
-    type: 'STRING',
-  },
-  {
-    description: 'Id de acompanhamento da m\u00eddia disparada',
-    mode: 'NULLABLE',
-    name: 'tracking_id',
-    type: 'INTEGER',
-  },
-  {
-    description: 'Nome do evento disparado',
-    maxLength: '100',
-    mode: 'NULLABLE',
-    name: 'media_event',
-    type: 'STRING',
-  },
-  {
-    description: 'Nome completo da tag disparada no GTM',
-    maxLength: '100',
-    mode: 'NULLABLE',
-    name: 'tag_name',
-    type: 'STRING',
-  },
-  {
-    description: 'Status de disparo da tag',
-    maxLength: '50',
-    mode: 'NULLABLE',
-    name: 'status',
-    type: 'STRING',
-  },
-  {
-    description: 'Nome do evento do DataLayer que acionou a tag',
-    maxLength: '100',
-    mode: 'NULLABLE',
-    name: 'datalayer_event',
-    type: 'STRING',
-  },
-  {
-    description: 'Data e hora do registro',
-    mode: 'REQUIRED',
-    name: 'timestamp',
-    type: 'TIMESTAMP',
-  },
-];
+    {
+        "name": "media_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome da midia que foi disparada",
+        "maxLength": "100"
+    },
+    {
+        "name": "tracking_id",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Id de acompanhamento da midia disparada"
+    },
+    {
+        "name": "media_event",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome do evento disparado",
+        "maxLength": "100"
+    },
+    {
+        "name": "tag_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome completo da tag disparada no GTM",
+        "maxLength": "100"
+    },
+    {
+        "name": "status",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Status de disparo da tag",
+        "maxLength": "50"
+    },
+    {
+        "name": "datalayer_event",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Nome do evento do DataLayer que acionou a tag",
+        "maxLength": "100"
+    },
+    {
+        "name": "timestamp",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED",
+        "description": "Data e hora do registro"
+    }
+]
 ```
+<br>
 
 ## Criação de Cloud Function
 
-Para criar a Cloud Function acesse o [GCP](https://console.cloud.google.com/functions) (Google Cloud Plataform) e utilize código diponibilizado abaixo. Foram utilizados `Runtime: Node.js 16` e `Entry point: gtm_monitor`. É importante verificar se a Cloud Function está acessível, portanto, verifique a secção `Permissions` para habilitar as permissões necessárias. Para a criação da function foram usados os arquivos `index.js` e `package.json`.
+Para criar a Cloud Function acesse o [GCP](https://console.cloud.google.com/functions) (Google Cloud Plataform) e utilize código diponibilizado abaixo (index.js e package.json). Foram utilizados `Runtime: Node.js 16` e `Entry point: gtm_monitor`. É importante verificar se a Cloud Function está acessível, portanto, verifique a secção `Permissions` para habilitar as permissões necessárias. Para a criação da function foram usados os arquivos `index.js` e `package.json`.
 
-A function recebe uma requisição HTTP que pode conter dados em JSON ou uma URL com query params. Para selecionar uma das opções é preciso alterar o valor da constante `input_option` localidada nas primeiras linhas de código.
+A function recebe uma requisição HTTP que pode conter dados em JSON ou uma URL com query params. Para selecionar uma das opções é preciso alterar o valor da constante `input_option` localizada nas primeiras linhas de código (no arquivo index.js).
 
 Os dados em formato JSON recebidos pela function estão no seguinte formato:
 
@@ -111,8 +112,9 @@ As informações provenientes da URL são organizadas em um dicionário após a 
 // Import the Google Cloud client library
 const { BigQuery } = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
-// Secret of cloud function
-const secret = process.env.SECRET;
+// Request origin allowed in cloud function
+var request_origin = process.env.REQUEST_ORIGIN;
+request_origin = request_origin.split(",")
 
 // Select what kind of data req.body contains. If the data
 // comes from sendPixel method (used on GTM custom template) use "url" else use "json"
@@ -137,12 +139,31 @@ async function insertRowsAsStream(request, input_option) {
     };
   }
 
+<<<<<<< HEAD
+    const datasetId = 'dp6_media_quality';
+    const tableId = 'media-quality-raw';
+    var json_data; 
+
+    if (input_option == "url"){
+      const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
+ 
+      json_data = {
+        media_name: url.match("media_name=([^&]+)")[1],
+        tracking_id: url.match("tracking_id=([^&]+)")[1],
+        media_event: url.match("media_event=([^&]+)")[1],
+        tag_name: url.match("tag_name=([^&]+)")[1],
+        status: url.match("status=([^&]+)")[1],
+        datalayer_event: url.match("datalayer_event=([^&]+)")[1],
+        timestamp: Date.now() / 1000
+      };
+=======
   if (input_option == 'json') {
     try {
       // Parse a JSON
       json_data = JSON.parse(request.body);
     } catch (e) {
       json_data = request.body;
+>>>>>>> 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
     }
 
     json_data['timestamp'] = Date.now() / 1000;
@@ -163,6 +184,24 @@ exports.gtm_monitor = (req, res) => {
     console.log('Requisição inválida. Verifique o payload ou o secret...');
     res.sendStatus(403);
   }
+<<<<<<< HEAD
+
+exports.gtm_monitor = (req, res) =>{
+    //console.log("BODY="+ req.body);
+    console.log("Origem da requisição = " + req.headers.origin);
+    //console.log("HEADER=" + JSON.stringify(req.headers));
+
+    if(req.body && request_origin.includes(req.headers.origin)){
+      insertRowsAsStream(req, input_option);
+      console.log("Requisição recebida com sucesso de: "+ req.headers.host);
+      res.sendStatus(200);
+    } else
+    {
+      console.log("Requisição inválida. Verifique o payload ou o secret...");
+      res.sendStatus(403);
+    }
+=======
+>>>>>>> 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
 };
 ```
 
@@ -170,7 +209,7 @@ exports.gtm_monitor = (req, res) => {
 
 ```javascript
 {
-    "name": "send-from-gtm-2-bq",
+    "name": "dp6-cf-media-quality",
     "version": "1.0.0",
     "description": "envia dados para o bigquery atraves de cloud function",
     "author": "dp6",
@@ -180,6 +219,7 @@ exports.gtm_monitor = (req, res) => {
     "license": "ISC"
   }
 ```
+<br>
 
 ## Adequação do custom template para envio de requisições para a Cloud Function
 
@@ -201,21 +241,20 @@ O `fetch` permite realizar requisições do tipo POST e o envio de dados no form
 const encodeUri = require('encodeUri');
 const sendPixel = require('sendPixel');
 const sendRequestFetch = data.sendFetchReference;
-const requestSecret = data.requestSecret;
 
 ...
 function fetchToCF(method) {
   // URL da cloud function
   const endpoint = data.cfEndpoint;
-
+  
   addEventCallback(function(containerId, eventData) {
-
+    
     const tagData = eventData.tags.filter(t => t.exclude === 'false');
-
+    
     for (let i in tagData) {
-
+      
       let entry = tagData[i];
-
+      
       let midia_params = {
             media_name: entry.name.split(' - ')[0].split(' (')[0],
             tracking_id: entry.tracking_id,
@@ -224,26 +263,26 @@ function fetchToCF(method) {
             status: entry.status,
             datalayer_event: event
         };
-
-
+      
+      
       if(method =='sendpixel'){
         // Montagem da URL da requisição
         var url = "";
-
+      
         for (let item in midia_params) {
         url += '&' + item + '=' + midia_params[item];
         }
 
         url = endpoint+ "/?" + encodeUri(url);
-        // Envia requisição utilizando sendPixel
+        // Envia requisição utilizando sendPixel 
         sendPixel(url,null,null);
-
-      }
-
+        
+      } 
+      
       if(method == 'fetch'){
         // Envia requisição utilizando fetch
-        sendRequestFetch(endpoint, midia_params, requestSecret);
-
+        sendRequestFetch(endpoint, midia_params);
+         
       }
     }
   });
@@ -256,17 +295,21 @@ function fetchToCF(method) {
 
 ```javascript
 function(){
-  function CustomFetch(endpoint, payload, secret){
+  function CustomFetch(endpoint, payload){
     fetch(endpoint, {
     method: "POST",
     mode: 'no-cors',
     body: JSON.stringify(payload),
-    headers: {'Content-Type': 'application/json', 'Authorization': secret}
+    headers: {'Content-Type': 'application/json'}
     });
   }
   return CustomFetch;
 }
 ```
+<<<<<<< HEAD
+<br>
+=======
+>>>>>>> 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
 
 ## Imagens da Implementação da Cloud Function
 
@@ -282,18 +325,24 @@ Na etapa de configuração selecione `Allow unauthenticated invocations` e marqu
 <figcaption>Figura 2 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
-Crie uma variável de ambiente com o nome `SECRET` e adicione o segredo.
+Crie uma variável de ambiente com o nome `REQUEST_ORIGIN` e adicione as URLs das página web separadas por vígula (ex.: https://dp6.com.br,https://dp6.github.io). A Cloud Function apenas será disparada se a requisição for proveniente dos sites listados na variável `REQUEST_ORIGIN`.
 
-<img src="./documentation-images/secret-cloud-function.PNG" height="auto" />
+<img src="./documentation-images/requestorigin-cloud-function.PNG" height="auto" />
 <figcaption>Figura 3 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
-Na aba de permissões deve `allUsers` deve possuir o papel `Cloud Functions Invoker`
+
+Na aba de permissões, `allUsers` deve possuir o papel `Cloud Functions Invoker`
 
 <img src="./documentation-images/permission-cloud-function.PNG" height="auto" />
 <figcaption>Figura 4 - Preenchimento do campo Endpoint com URL da Cloud Function</figcaption>
 </div>
 
+<<<<<<< HEAD
+<br>
+
+=======
+>>>>>>> 16af4140b0c8cb2b4f64ab50a4a4183d0ef897c9
 ## Imagens da Implementação no GTM
 
 ### Passo 1: Criação da variável javascript
