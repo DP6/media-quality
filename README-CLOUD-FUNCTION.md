@@ -14,6 +14,7 @@ As colunas criadas na tabela são:
 
 | Nome da Coluna  | Descrição                                     |
 | --------------- | --------------------------------------------- |
+| client_id       | Client id do Google Analytics                 |
 | media_name      | Nome da mídia que foi disparada               |
 | tracking_id     | Id de acompanhamento da mídia disparada       |
 | media_event     | Nome do evento disparado                      |
@@ -28,6 +29,13 @@ Ao criar a tabela selecione a opção para realizar o particionamento diário do
 // Esquema da tabela criada no Big Query
 [
   {
+    name: 'client_id',
+    type: 'STRING',
+    mode: 'NULLABLE',
+    description: 'Client id do Google Analytics',
+    maxLength: '100'
+  },
+  {
     name: 'media_name',
     type: 'STRING',
     mode: 'NULLABLE',
@@ -36,9 +44,10 @@ Ao criar a tabela selecione a opção para realizar o particionamento diário do
   },
   {
     name: 'tracking_id',
-    type: 'INTEGER',
+    type: 'STRING',
     mode: 'NULLABLE',
     description: 'Id de acompanhamento da midia disparada',
+    maxLength: '100'
   },
   {
     name: 'media_event',
@@ -89,8 +98,9 @@ Os dados em formato JSON recebidos pela function estão no seguinte formato:
 
 ```javascript
 {
+    "client_id": "1101944939.1645464696"
     "media_name": "media_name",
-    "tracking_id": 123,
+    "tracking_id": "123",
     "media_event": "media_event",
     "tag_name": "tag_name",
     "status": "status",
@@ -102,7 +112,7 @@ Os dados em formato JSON recebidos pela function estão no seguinte formato:
 Caso os dados recebidos pelo Cloud Function seja uma URL ela será do seguinte formato:
 
 ```
-https://{{URL da Cloud Function}}/?media_name={{media_name}}&tracking_id={{tracking_id}}&media_event={{media_event}} ...
+https://{{URL da Cloud Function}}/?client_id={{client_id}}&media_name={{media_name}}&tracking_id={{tracking_id}}&media_event={{media_event}} ...
 ```
 
 As informações provenientes da URL são organizadas em um dicionário após a extração por meio de expressões regulares. Posteriormente os dados são enviados para o Big Query.
@@ -111,44 +121,27 @@ As informações provenientes da URL são organizadas em um dicionário após a 
 
 ```javascript
 // Import the Google Cloud client library
-const { BigQuery } = require('@google-cloud/bigquery');
+const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 // Request origin allowed in cloud function
 var request_origin = process.env.REQUEST_ORIGIN;
 request_origin = request_origin.split(",")
 
-// Select what kind of data req.body contains. If the data
+// Select what kind of data req.body contains. If the data 
 // comes from sendPixel method (used on GTM custom template) use "url" else use "json"
 const input_option = 'json'; // url ou json
 
 async function insertRowsAsStream(request, input_option) {
-  const datasetId = 'mediaQualityDataset';
-  const tableId = 'raw_data';
-  var json_data;
-
-  if (input_option == 'url') {
-    const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
-
-    json_data = {
-      media_name: url.match('media_name=([^&]+)')[1],
-      tracking_id: url.match('tracking_id=([^&]+)')[1],
-      media_event: url.match('media_event=([^&]+)')[1],
-      tag_name: url.match('tag_name=([^&]+)')[1],
-      status: url.match('status=([^&]+)')[1],
-      datalayer_event: url.match('datalayer_event=([^&]+)')[1],
-      timestamp: Date.now() / 1000,
-    };
-  }
-
 
     const datasetId = 'dp6_media_quality';
     const tableId = 'media-quality-raw';
-    var json_data;
+    var json_data; 
 
     if (input_option == "url"){
       const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
-
+ 
       json_data = {
+        client_id: url.match("client_id=([^&]+)")[1],
         media_name: url.match("media_name=([^&]+)")[1],
         tracking_id: url.match("tracking_id=([^&]+)")[1],
         media_event: url.match("media_event=([^&]+)")[1],
@@ -157,39 +150,33 @@ async function insertRowsAsStream(request, input_option) {
         datalayer_event: url.match("datalayer_event=([^&]+)")[1],
         timestamp: Date.now() / 1000
       };
-
-  if (input_option == 'json') {
-    try {
-      // Parse a JSON
-      json_data = JSON.parse(request.body);
-    } catch (e) {
-      json_data = request.body;
-
     }
 
-    json_data['timestamp'] = Date.now() / 1000;
+    if (input_option == "json"){
+      try {
+        // Parse a JSON
+        json_data = JSON.parse(request.body); 
+      } catch (e) {
+        json_data = request.body;
+      }
+
+      json_data["timestamp"] = Date.now() /1000;
+
+    }
+    
+    
+    console.log("Enviando payload: ", json_data);
+    // Insert data into a table
+    await bigquery
+      .dataset(datasetId)
+      .table(tableId)
+      .insert(json_data);
+    console.log(`Inserted rows`);
   }
-
-  console.log('Enviando payload: ', json_data);
-  // Insert data into a table
-  await bigquery.dataset(datasetId).table(tableId).insert(json_data);
-  console.log(`Inserted rows`);
-}
-
-exports.gtm_monitor = (req, res) => {
-  if (req.body && req.headers.authorization == secret) {
-    insertRowsAsStream(req, input_option);
-    console.log('Requisição recebida com sucesso...');
-    res.sendStatus(200);
-  } else {
-    console.log('Requisição inválida. Verifique o payload ou o secret...');
-    res.sendStatus(403);
-  }
-
 
 exports.gtm_monitor = (req, res) =>{
     //console.log("BODY="+ req.body);
-    console.log("Origem da requisição = " + req.headers.origin);
+    console.log("ORIGEM DA REQUISICAO = " + req.headers.origin);
     //console.log("HEADER=" + JSON.stringify(req.headers));
 
     if(req.body && request_origin.includes(req.headers.origin)){
@@ -198,10 +185,9 @@ exports.gtm_monitor = (req, res) =>{
       res.sendStatus(200);
     } else
     {
-      console.log("Requisição inválida. Verifique o payload ou o secret...");
+      console.log("Requisição inválida. Verifique o payload ou a variável REQUEST_ORIGIN...");
       res.sendStatus(403);
     }
-
 };
 ```
 
@@ -244,49 +230,48 @@ const sendPixel = require('sendPixel');
 const sendRequestFetch = data.sendFetchReference;
 
 ...
-function fetchToCF(method) {
-  // URL da cloud function
-  const endpoint = data.cfEndpoint;
+function sendToCF(method) {
 
-  addEventCallback(function(containerId, eventData) {
+    const endpoint = data.cfEndpoint;
+    const event = readFromDataLayer('event');
+    const fetch = data.fetchReference;
 
-    const tagData = eventData.tags.filter(t => t.exclude === 'false');
+    addEventCallback(function(containerId, eventData) {
+        
+        const tagData = eventData.tags.filter(t => t.exclude === 'false');
+        for (let i in tagData) {
 
-    for (let i in tagData) {
-
-      let entry = tagData[i];
-
-      let midia_params = {
-            media_name: entry.name.split(' - ')[0].split(' (')[0],
-            tracking_id: entry.tracking_id,
-            media_event: entry.name.split(' - ')[1],
-            tag_name: entry.name,
-            status: entry.status,
-            datalayer_event: event
-        };
-
-
-      if(method =='sendpixel'){
-        // Montagem da URL da requisição
-        var url = "";
-
-        for (let item in midia_params) {
-        url += '&' + item + '=' + midia_params[item];
+            let entry = tagData[i];
+            let body = {
+                client_id: data.clientId,
+                media_name: data.autoCollect ? entry.media_name : entry.name.split(' - ')[0].split(' (')[0],
+                tracking_id: entry.tracking_id,
+                media_event: data.autoCollect ? entry.media_event : entry.name.split(' - ')[1],
+                tag_name: entry.name,
+                status: entry.status,
+                datalayer_event: event
+            };
+            for (let j in data.params) {
+                let name = data.params[j].param;
+                let value = data.params[j].value;
+                body[name] = value;
+            }
+            
+            //Send data via GET method
+            if (method == 'get') {
+                var url = "";
+                for (let item in body) {
+                    url += '&' + item + '=' + body[item];
+                }
+                url = endpoint+ "/?" + encodeUri(url);
+                sendPixel(url,null,null);
+            }
+            //Send data via POST method
+            else if (method == 'post') {
+                fetch(endpoint, body);
+            }
         }
-
-        url = endpoint+ "/?" + encodeUri(url);
-        // Envia requisição utilizando sendPixel
-        sendPixel(url,null,null);
-
-      }
-
-      if(method == 'fetch'){
-        // Envia requisição utilizando fetch
-        sendRequestFetch(endpoint, midia_params);
-
-      }
-    }
-  });
+    });
 }
 
 ...
