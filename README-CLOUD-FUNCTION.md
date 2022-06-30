@@ -170,15 +170,15 @@ async function insertRowsAsStream(request, input_option) {
 
 exports.gtm_monitor = (req, res) => {
   //console.log("BODY="+ req.body);
-  console.log('ORIGEM DA REQUISICAO = ' + req.headers.origin);
+  //console.log('ORIGEM DA REQUISICAO = ' + req.headers.origin);
   //console.log("HEADER=" + JSON.stringify(req.headers));
 
   if (req.body && request_origin.includes(req.headers.origin)) {
     insertRowsAsStream(req, input_option);
-    console.log('Requisição recebida com sucesso de: ' + req.headers.host);
+    //console.log('Requisição recebida com sucesso de: ' + req.headers.host);
     res.sendStatus(200);
   } else {
-    console.log('Requisição inválida. Verifique o payload ou a variável REQUEST_ORIGIN...');
+    //console.log('Requisição inválida. Verifique o payload ou a variável REQUEST_ORIGIN...');
     res.sendStatus(403);
   }
 };
