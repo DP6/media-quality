@@ -19,24 +19,23 @@
 
 ## Para que serve?
 
-A solução _Media Quality_ tem como objetivo acompanhar a volumetria de disparos das tags de mídia dentro do GTM, garantindo que modificações e atualizações no container não gere um impacto negativo no funcionamento das tags. Os dados dos eventos podem ser enviados para o Google Analytics 4 ou para o Big Query, através do uso do Google Cloud Functions. 
+A solução _Media Quality_ tem como objetivo acompanhar a volumetria de disparos das tags de mídia dentro do GTM, garantindo que modificações e atualizações no container não gere um impacto negativo no funcionamento das tags. Os dados dos eventos podem ser enviados para o Google Analytics 4 ou para o Big Query, através do uso do Google Cloud Functions.
 
 ## Arquitetura de dados
 
 Quando uma tag de mídia é disparada a tag de Media Quality é disparada e envia dos dados do evento de mídia para o GA4 e/ou cloud function. Enquanto que no GA4 os dados do eventos só ficam disponíveis no dia seguinte, com a utilização de cloud functions o monitoramento ocorre em tempo real.
 
+O fluxo de implementação da solução funciona da seguinte forma:
 
-O fluxo de implementação da solução funciona da seguinte forma: 
 1. inicialmente são criadas as contas do GA4 e no GTM;
 2. Importação do template de tag customizado para o GTM;
-3. Criação de fluxo de dados no GA4 e obtenção do *MEASUREMENT ID* (apenas se for utilizar o GA4);
+3. Criação de fluxo de dados no GA4 e obtenção do _MEASUREMENT ID_ (apenas se for utilizar o GA4);
 4. Criação de cloud function no ambiente em nuvem da Google;
 5. Criação de tabela de Media Quality no Big Query;
 6. Criação das tags de configuração do Media Quality utilizando o template customizado;
 7. Criação de disparador das tags;
 8. Adição de parâmetros nas tags de mídia existentes, para que estas sejam rastreadas;
 9. Construção de relatórios a partir das tabelas do Big Query.
-
 
 Dados de mídia que serão enviados na ferramenta escolhida.
 
@@ -49,7 +48,7 @@ Dados de mídia que serão enviados na ferramenta escolhida.
 | status          | Status de disparo da tag                      |
 | datalayer_event | Nome do evento do DataLayer que acionou a tag |
 | client_id       | Id do cliente                                 |
-| timestamp       | Data e hora do disparo                        |  
+| timestamp       | Data e hora do disparo                        |
 
 **Parâmetros adicionais:**
 
@@ -68,7 +67,6 @@ Os parâmetros adicionais serão enviados com o nome específico adicionado na t
 - Google Analytics 4.
 
 ## 2. Configurações
- 
 
 A seguir são listadas algumas etapas de configuração:
 
@@ -79,13 +77,15 @@ A seguir são listadas algumas etapas de configuração:
 5. [Configuração com o uso da Cloud Function](https://github.com/DP6/media-quality/blob/master/README-CLOUD-FUNCTION.md).
 
 ## 3. Dashboard de acompanhamento
-Os dados armazenados na tabela do Big Query foram utilizados para a criação de dashbords no Data Studio. Os dados são exibidos quase em tempo real (atualizados a cada 15 minutos) e permitem agilidade na análise e tomada de decisão em relação ao comportamento das tags de mídia. 
 
+Os dados armazenados na tabela do Big Query foram utilizados para a criação de dashbords no Data Studio. Os dados são exibidos quase em tempo real (atualizados a cada 15 minutos) e permitem agilidade na análise e tomada de decisão em relação ao comportamento das tags de mídia.
 
 ### Página de acompanhamento real-time
+
 <img src="./documentation-images/dashboard-real-time.gif" height="auto" width="auto"/>
 
 ### Página de análise de consolidado
+
 <img src="./documentation-images/dashboard-consolidated.gif" height="auto" width="auto"/>
 
 ## 4. Como contribuir
