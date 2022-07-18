@@ -23,7 +23,7 @@ A solução _Media Quality_ tem como objetivo acompanhar a volumetria de disparo
 
 ## Arquitetura de dados
 
-Quando uma tag de mídia é disparada a tag de Media Quality é disparada e envia dos dados do evento de mídia para o GA4 e/ou cloud function. Enquanto que no GA4 os dados do eventos só ficam disponíveis no dia seguinte, com a utilização de cloud functions o monitoramento ocorre em tempo real.
+Quando uma tag de mídia é disparada a tag de Media Quality é disparada e envia os dados do evento para o GA4 e/ou cloud function. Enquanto que no GA4 os dados do eventos só ficam disponíveis no dia seguinte, com a utilização de cloud functions o monitoramento ocorre em tempo real.
 
 O fluxo de implementação da solução funciona da seguinte forma:
 
@@ -54,11 +54,10 @@ Dados de mídia que serão enviados na ferramenta escolhida.
 
 Os parâmetros adicionais serão enviados com o nome específico adicionado na tag do Media Quality do GTM.
 
-# Instalação
 
-## 1. Requisitos para utilização
+## Requisitos para utilização
 
-### 1.1 Produtos do GCP
+### Produtos do GCP
 
 - Cloud Function;
 - Bigquery;
@@ -66,7 +65,7 @@ Os parâmetros adicionais serão enviados com o nome específico adicionado na t
 - Google Tag Manager (GTM);
 - Google Analytics 4.
 
-## 2. Configurações
+## Configurações
 
 A seguir são listadas algumas etapas de configuração:
 
@@ -76,7 +75,7 @@ A seguir são listadas algumas etapas de configuração:
 4. [Configuração com o uso do GA4](https://github.com/DP6/media-quality/blob/master/README-GA4.md);
 5. [Configuração com o uso da Cloud Function](https://github.com/DP6/media-quality/blob/master/README-CLOUD-FUNCTION.md).
 
-## 3. Dashboard de acompanhamento
+## Dashboard de acompanhamento
 
 Os dados armazenados na tabela do Big Query foram utilizados para a criação de dashbords no Data Studio. Os dados são exibidos quase em tempo real (atualizados a cada 15 minutos) e permitem agilidade na análise e tomada de decisão em relação ao comportamento das tags de mídia.
 
@@ -88,7 +87,7 @@ Os dados armazenados na tabela do Big Query foram utilizados para a criação de
 
 <img src="./documentation-images/dashboard-consolidated.gif" height="auto" width="auto"/>
 
-## 4. Como contribuir
+## Como contribuir
 
 Pull requests são bem-vindos! Nós vamos adorar ajuda para evoluir esse modulo. Sinta-se livre para navegar por issues abertas buscando por algo que possa fazer. Caso tenha uma nova feature ou bug, por favor abra uma nova issue para ser acompanhada pelo nosso time.
 
@@ -102,7 +101,7 @@ Só serão aceitas contribuições que estiverem seguindo os seguintes requisito
 
 - [Index.md](https://github.com/dp6/media-quality/blob/master/docs/index.md)
 
-## 5. Suporte
+## Suporte
 
 **DP6 Koopa-troopa Team**
 
