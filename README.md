@@ -54,7 +54,6 @@ Dados de mídia que serão enviados na ferramenta escolhida.
 
 Os parâmetros adicionais serão enviados com o nome específico adicionado na tag do Media Quality do GTM.
 
-
 ## Requisitos para utilização
 
 ### Produtos do GCP
