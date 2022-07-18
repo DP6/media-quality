@@ -54,7 +54,7 @@ _Importante:_ Caso os nomes das tags de mídia sigam o padrão `<Nome da mídia>
 ### Tag de configuração do GA4
 A imagem a seguir (Figura 1) mostra um exemplo de preenchimento da tag de configuração de Media Quality contendo os campos mencionados anteriormente.
 <div align="center">
-<img src="./documentation-images/gtm-tag-media-ga4.png" height="auto" />
+<img src="./documentation-images/gtm-tag-media-ga4.PNG" height="auto" />
 <figcaption>Figura 1 - Criação de tag de configuração de mídia para o GA4.</figcaption>
 </div>
 
@@ -62,7 +62,7 @@ A imagem a seguir (Figura 1) mostra um exemplo de preenchimento da tag de config
 
 A Figura 2 mostra um exemplo de configuração da tag de Media Quality responsável pelo envio de dados para a cloud function.
 <div align="center">
-<img src="./documentation-images/gtm-tag-media-cloud-function.png" height="auto" />
+<img src="./documentation-images/gtm-tag-media-cloud-function.PNG" height="auto" />
 <figcaption>Figura 2 - Criação de tag de configuração de mídia que utiliza cloud function.</figcaption>
 </div>
 
@@ -89,7 +89,7 @@ _Observação 2:_ É importante que o parâmetro `exclude` seja utilizado, e que
 Um gatilho (Figura 4) é responsável por ativar as tags a partir de determinados critérios. Em Media Quality foi criado um gatilho simples, que dispara as tags sempre que um evento qualquer acontece. Como foi mencionado anteriormente, apenas serão coletados os dados de tags que contenham o parâmetro `exclude` com o valor `false`.  
 
 <div align="center">
-<img src="./documentation-images/gtm-trigger-media-quality.png" height="auto" />
+<img src="./documentation-images/gtm-trigger-media-quality.PNG" height="auto" />
 <figcaption>Figura 4 - Gatilho dos eventos de Media Quality.</figcaption>
 </div>
 
