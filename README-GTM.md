@@ -12,15 +12,21 @@ No GTM, na secção `Workspace` clique em `Templates`. Em `Tag Templates` clique
 
 Para adicionar a tag, clique em `Tags > New`, selecione o tag template de Media Quality criado anteriormente. A tag possui os campos a seguir:
 
-- **Client ID:** ID único de identificação de usuário (ex.: 1112001.123219435344);
-- **Sampling:** Define o percentual de clientes que serão monitorados (ex.: 10, 50, 100);
-- **Domain:** Domínio a ser monitorado (ex.: www.dp6.com.br);
-- **Collection mode:** Determina para onde os dados serão enviados ("GA4" ou "Cloud Function");
-- **Measurement ID:** Measurement ID do GA4, ex.: G-6YTF07BEBK (disponível apenas se Collection mode é "GA4");
-- **API Secret:** A solução utiliza o Measurement Protocol do GA4. Para criar o API secret vá para `Admin > Data Streams > Escolha seu stream > Measurement Protocol` (disponível apenas se Collection mode é "GA4");
-- **Send Beacon Reference:** Adiciona referência ao custom javascript sendBeacon (disponível apenas se Collection mode é "GA4"). Deve ser criada uma variável do tipo javascript com o código a seguir:
+| Atributo        | Detalhes                                                        |
+|:----------------|:----------------------------------------------------------------| 
+| Client ID       | ID único de identificação de usuário (ex.: 1112001.123219435344)|
+| Sampling        | Define o percentual de clientes que serão monitorados (ex.: 10, 50, 100)|
+| Domain          | Domínio a ser monitorado (ex.: www.dp6.com.br)|
+| Collection mode | Determina para onde os dados serão enviados ("GA4" ou "Cloud Function")|
+| Measurement ID  | Measurement ID do GA4, ex.: G-6YTF07BEBK (disponível apenas se Collection mode é "GA4")|
+| API Secret      | A solução utiliza o Measurement Protocol do GA4. Para criar o API secret vá para `Admin > Data Streams > Escolha seu stream > Measurement Protocol` (disponível apenas se Collection mode é "GA4")|
+|Send Beacon Reference | Adiciona referência ao custom javascript sendBeacon (disponível apenas se Collection mode é "GA4"). Deve ser criada uma variável do tipo javascript com o código abaixo.
+| Endpoint        | É a URL da cloud function para onde os dados devem ser enviados, ex.: "https://us-central1-dp6-raft-suite.cloudfunctions.net/dp6-cf-media-quality" (disponível apenas se Collection mode é "Cloud Function "). Para identificar qual URL utilizar acesse o console do Google Cloud, e verifique os detalhes da cloud function que foi criada. Lá é possível obter qual URL utilizar nas requisições; |
+| Request Method  | O método "GET" faz com que seja utilizada internamente a função "sendPixel". Para o método "POST" é preciso criar uma função javascript que deve ser referenciada no parâmetro abaixo "Fetch Reference". Recomenda-se utilizar o método "POST" (disponível apenas se Collection mode é "Cloud Function"); |
+| Fetch Reference | Adiciona referência ao custom javascript que realiza requisições HTTP (disponível apenas se Collection mode é "Cloud Function" e Request Method é "POST"). Deve ser criada uma variável do tipo javascript com o código abaixo. |
 
 ```js
+// Send Beacon
 function () {
   function sendBeacon(endpoint, body) {
     navigator.sendBeacon(endpoint, body);
@@ -29,11 +35,8 @@ function () {
 }
 ```
 
-- **Endpoint:** É a URL da cloud function para onde os dados devem ser enviados, ex.: "https://us-central1-dp6-raft-suite.cloudfunctions.net/dp6-cf-media-quality" (disponível apenas se Collection mode é "Cloud Function "). Para identificar qual URL utilizar acesse o console do Google Cloud, e verifique os detalhes da cloud function que foi criada. Lá é possível obter qual URL utilizar nas requisições;
-- **Request Method:** O método "GET" faz com que seja utilizada internamente a função "sendPixel". Para o método "POST" é preciso criar uma função javascript que deve ser referenciada no parâmetro abaixo "Fetch Reference". Recomenda-se utilizar o método "POST" (disponível apenas se Collection mode é "Cloud Function");
-- **Fetch Reference:** Adiciona referência ao custom javascript que realiza requisições HTTP (disponível apenas se Collection mode é "Cloud Function" e Request Method é "POST"). Deve ser criada uma variável do tipo javascript com o código a seguir:
-
 ```js
+// Fetch Reference
 function(){
   function CustomFetch(endpoint, payload){
     fetch(endpoint, {
