@@ -40,7 +40,7 @@ O fluxo de implementação da solução funciona da seguinte forma:
 Dados de mídia que serão enviados na ferramenta escolhida.
 
 | Dado coletado   | Parâmetro                                     |
-| --------------- | --------------------------------------------- |
+| :-------------- | :-------------------------------------------- |
 | media_name      | Nome da mídia que foi disparada               |
 | tracking_id     | Id de acompanhamento da mídia disparada       |
 | media_event     | Nome do evento disparado                      |
@@ -54,25 +54,37 @@ Dados de mídia que serão enviados na ferramenta escolhida.
 
 Os parâmetros adicionais serão enviados com o nome específico adicionado na tag do Media Quality do GTM.
 
-## Requisitos para utilização
+## Implementação no Google Analytics 4
 
-### Produtos do GCP
+### **Requisitos para utilização**
 
-- Cloud Function;
-- Bigquery;
-- Service account;
 - Google Tag Manager (GTM);
 - Google Analytics 4.
 
-## Configurações
+### **Configurações**
 
 A seguir são listadas algumas etapas de configuração:
 
-1. Habilitar os produtos no GCP Cloud Function e BigQuery;
-2. Criar conta do Google Analytics 4 e do Google Tag Manager;
-3. [Configuração do GTM](https://github.com/DP6/media-quality/blob/master/README-GTM.md);
-4. [Configuração com o uso do GA4](https://github.com/DP6/media-quality/blob/master/README-GA4.md);
-5. [Configuração com o uso da Cloud Function](https://github.com/DP6/media-quality/blob/master/README-CLOUD-FUNCTION.md).
+1. [Configuração do GTM](https://github.com/DP6/media-quality/blob/master/README-GTM.md);
+2. [Configuração com o uso do GA4](https://github.com/DP6/media-quality/blob/master/README-GA4.md);
+
+
+## Implementação com Google Cloud Function
+### **Requisitos para utilização**
+
+- Cloud Function;
+- Bigquery;
+- Google Tag Manager (GTM);
+
+### **Configurações**
+
+A seguir são listadas algumas etapas de configuração:
+
+1. [Configuração do GTM](https://github.com/DP6/media-quality/blob/master/README-GTM.md);
+2. [Configuração com o uso da Cloud Function](https://github.com/DP6/media-quality/blob/master/README-CLOUD-FUNCTION.md).
+
+
+
 
 ## Dashboard de acompanhamento
 
