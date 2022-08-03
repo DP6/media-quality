@@ -68,8 +68,8 @@ A seguir são listadas algumas etapas de configuração:
 1. [Configuração do GTM](https://github.com/DP6/media-quality/blob/master/README-GTM.md);
 2. [Configuração com o uso do GA4](https://github.com/DP6/media-quality/blob/master/README-GA4.md);
 
-
 ## Implementação com Google Cloud Function
+
 ### **Requisitos para utilização**
 
 - Cloud Function;
@@ -82,9 +82,6 @@ A seguir são listadas algumas etapas de configuração:
 
 1. [Configuração do GTM](https://github.com/DP6/media-quality/blob/master/README-GTM.md);
 2. [Configuração com o uso da Cloud Function](https://github.com/DP6/media-quality/blob/master/README-CLOUD-FUNCTION.md).
-
-
-
 
 ## Dashboard de acompanhamento
 
