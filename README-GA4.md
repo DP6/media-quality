@@ -2,6 +2,8 @@
 
 No Google Analytics 4 deve ser criada uma conta e um fluxo de dados. O valor do _MEASUREMENT ID_ deve ser utilizado no GTM para o envio das informações.
 
+> Como boa prática recomenda-se a criação de uma propriedade dedicada para o projeto de Media Quality, com o objetivo de separar os dados gerados de monitoramento dos dados de produção do cliente.
+
 ## Configuração do Measurement Protocol
 
 O Measurement Protocol permite que os dados sejam enviados para o GA4 diretamente a partir de requisições HTTP. Para utilizá-lo é necessário criar um **secret** que é enviado nas requisições, adicionando uma camada de segurança. Para criar o API secret no GA4 vá para `Admin > Data Streams > Escolha seu stream > Measurement Protocol`.

@@ -23,7 +23,10 @@ A solução _Media Quality_ tem como objetivo acompanhar a volumetria de disparo
 
 ## Arquitetura de dados
 
-Quando uma tag de mídia é disparada a tag de Media Quality é disparada e envia os dados do evento para o GA4 e/ou cloud function. Enquanto que no GA4 os dados do eventos só ficam disponíveis no dia seguinte, com a utilização de cloud functions o monitoramento ocorre em tempo real.
+Quando uma tag de mídia é disparada, a tag de Media Quality é acionada e envia os dados do evento para o GA4 e/ou cloud function. Enquanto os dados dos eventos no GA4 somente ficam disponíveis no dia seguinte, com a utilização de cloud functions o monitoramento ocorre em tempo real.
+
+> O uso do Cloud Function é mais indicado para verificação de dados em tempo real. Os dados no GA4 ficam disponibilizados em um dia após a implementação, podendo ser integrados a outros relatórios. Caso queira, as duas opções podem ser configuradas e utilizadas ao mesmo tempo.
+
 
 O fluxo de implementação da solução funciona da seguinte forma:
 
