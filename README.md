@@ -27,7 +27,6 @@ Quando uma tag de mídia é disparada, a tag de Media Quality é acionada e envi
 
 > O uso do Cloud Function é mais indicado para verificação de dados em tempo real. Os dados no GA4 ficam disponibilizados em um dia após a implementação, podendo ser integrados a outros relatórios. Caso queira, as duas opções podem ser configuradas e utilizadas ao mesmo tempo.
 
-
 O fluxo de implementação da solução funciona da seguinte forma:
 
 1. inicialmente são criadas as contas do GA4 e no GTM;
