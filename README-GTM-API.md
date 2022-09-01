@@ -7,7 +7,7 @@ access the data instead of using Python libraries.
 
 > :warning: **The data will be stored in a BigQuery table. This feature is optional and can improve report analysis.**
 
-There are several steps that need to be followed:
+There are some steps that need to be followed:
 
 ## Step 1 - Create Credentials
 
@@ -24,7 +24,8 @@ There are several steps that need to be followed:
 
 ## Step 2 - Cloud Function settings
 
-Using the avaiable code create a Cloud Funtion (using Python 3.10). The Google Cloud Schedule can be used to schedule a daily execution of the cloud function.
+- Using the avaiable code create a Cloud Funtion (using Python 3.10);
+- Schedule the Cloud Function execution. The Google Cloud Schedule can be used to schedule a daily execution of the cloud function.
 
 ## Step 3 - GTM Settings
 
@@ -51,7 +52,7 @@ Table created in BigQuery:
 | snapshotDate    | Date of snapshot                |
 | timestamp       | Date and time of data insertion |
 
-To create the table in BigQuery use the Python function as above:
+To create the table in BigQuery use the Python function as below:
 
 ```python
 def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -> None:
@@ -302,7 +303,7 @@ PyYAML==6.0
 
 ## GTM API Output Example
 
-The output JSON from when using GTM's API in `list` action follow the pattern bellow:
+The GTM's API returns a `list` of tags in JSON format. For example, the following JSON contains information about three tags:
 
 ```json
 {
