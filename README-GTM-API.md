@@ -13,11 +13,11 @@ There are several steps that need to be followed:
 
 - 1.1 Create a GCP project;
 
-- 1.2 Activate **Tag Manager API** in  `APIs & Services > Enabled APIs & services`;
+- 1.2 Activate **Tag Manager API** in `APIs & Services > Enabled APIs & services`;
 
 - 1.3 Go to `APIs & Services > Credentials > + Create Credentials > Service Account` and create se service account. Don't forget to save the credentials in a JSON file (optional);
 
-- 1.4 Create an API key in `APIs & Services > Credentials > + Create Credentials > API key`. It's important to restrict the key to only "Tag Manager API" (Figure 1). 
+- 1.4 Create an API key in `APIs & Services > Credentials > + Create Credentials > API key`. It's important to restrict the key to only "Tag Manager API" (Figure 1).
 
 <img src="./documentation-images/gtm-api-key-gcp.PNG" height="auto" />
 <figcaption>Figure 1 - API Key Configuration</figcaption>
@@ -39,32 +39,33 @@ The data obtained from GTM is stored in BigQuery. For example, was created the d
 
 Table created in BigQuery:
 
-| Column Name     | Description                                   |
-| --------------- | --------------------------------------------- |
-| accountId       | Google Tag Manager account ID                 |
-| containerId     | Google Tag Manager container ID               |
-| firingTriggerId | Trigger ID                                    |
-| workspaceId     | Google Tag Manager workspace ID               |
-| name            | Tag name                                      |
-| tagId           | Tag ID                                        |
-| tagType         | Tag type                                      |
-| snapshotDate    | Date of snapshot                              |
-| timestamp       | Date and time of data insertion               |
+| Column Name     | Description                     |
+| --------------- | ------------------------------- |
+| accountId       | Google Tag Manager account ID   |
+| containerId     | Google Tag Manager container ID |
+| firingTriggerId | Trigger ID                      |
+| workspaceId     | Google Tag Manager workspace ID |
+| name            | Tag name                        |
+| tagId           | Tag ID                          |
+| tagType         | Tag type                        |
+| snapshotDate    | Date of snapshot                |
+| timestamp       | Date and time of data insertion |
 
 To create the table in BigQuery use the Python function as above:
+
 ```python
 def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -> None:
 	r"""Create dataset dataset and table in Big Query
-	
+
 	Args:
 		project_name (string): name of GCP project
 		dataset_name (string): name o Big Query dataset
 		table_name (string): name of table
-		client: Big Query Client instance 
+		client: Big Query Client instance
 
 	"""
 	client.query(f"CREATE SCHEMA IF NOT EXISTS {dataset_name}")
-	
+
 	client.query(f"CREATE TABLE IF NOT EXISTS {project_name}.{dataset_name}.{table_name}  ( \
 				accountId STRING,\
 				containerId STRING, \
@@ -76,13 +77,6 @@ def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -
 				snapshotDate DATE, \
 				timestamp TIMESTAMP	)")
 ```
-
-
-
-
-
-
-
 
 ## Reference code used in cloud function
 
@@ -138,16 +132,16 @@ TABLE_NAME = "media-quality-gtm-tags" # Change values
 
 def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -> None:
 	r"""Create dataset dataset and table in Big Query
-	
+
 	Args:
 		project_name (string): name of GCP project
 		dataset_name (string): name o Big Query dataset
 		table_name (string): name of table
-		client: Big Query Client instance 
+		client: Big Query Client instance
 
 	"""
 	client.query(f"CREATE SCHEMA IF NOT EXISTS {dataset_name}")
-	
+
 	client.query(f"CREATE TABLE IF NOT EXISTS {project_name}.{dataset_name}.{table_name}  ( \
 				accountId STRING,\
 				containerId STRING, \
@@ -158,7 +152,7 @@ def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -
 				tagType STRING, \
 				snapshotDate DATE, \
 				timestamp TIMESTAMP	)")
-	
+
 
 def bq_insert_to_table(data, table_id, client) -> None:
 	r"""Insert data to Big Query table
@@ -167,7 +161,7 @@ def bq_insert_to_table(data, table_id, client) -> None:
 		data (list of JSON): data to be inserted into table
 		table_id (string): table id from Big Query in format <projectId>.<datasetId>.<tableName>
 	"""
-	
+
 	table_obj = client.get_table(table_id)
 	errors = client.insert_rows(table=table_obj, rows=data)
 	if errors == []:
@@ -177,11 +171,11 @@ def bq_insert_to_table(data, table_id, client) -> None:
 
 
 def _get_credentials():
-	r""" Get credentials from GCP. 
+	r""" Get credentials from GCP.
 	If constant RUN_AS_CLOUD_FUNCTION is true the credential will be acquired from GCP credential's default.
-	
+
 	If constant RUN_AS_CLOUD_FUNCTION is false the credential will be acquired from JSON file.
-	
+
 	"""
 	credentials = None
 	# Creates a Credentials instance from a service account json file
@@ -199,7 +193,7 @@ def _get_credentials():
 
 def list_tags(gtm_account, gtm_container, gtm_workspace, api_key, token):
 	r""" List all GTM tags
-	
+
 	Args:
 		gtm_account (string): Google Tag Manager account number
 		gtm_container (string): Google Tag Manager container number
@@ -224,27 +218,27 @@ def list_tags(gtm_account, gtm_container, gtm_workspace, api_key, token):
 
 def _parse_media_tags(list_of_tags):
 	r"""Filter media tags and parse data
-	
+
 	Args:
 		list_of_tags (json): dictionary with all tags
-	
+
 	Output:
 		json with parsed data for media tags
 	"""
-	
+
 	media_json_list = []
 	current_date = datetime.datetime.now()
 	current_date_formatted = current_date.strftime("%Y-%m-%d")
 	for tag in list_of_tags["tag"]:
 		add_to_list = False
-		
+
 		json_sanity_check = ("monitoringMetadata" in tag) and ("map" in tag["monitoringMetadata"])
 
 		if json_sanity_check == True:
 			for param in tag["monitoringMetadata"]["map"]:
 				if param["key"] == "exclude" and param["value"] == "false":
 					add_to_list = True
-		if add_to_list:				
+		if add_to_list:
 			reduced_json = { "accountId": tag["accountId"],
 							"containerId": tag["containerId"],
 							"firingTriggerId": tag["firingTriggerId"][0],
@@ -252,17 +246,17 @@ def _parse_media_tags(list_of_tags):
 							"name": tag["name"],
 							"tagId": tag["tagId"],
 							"tagType": tag["type"],
-							"snapshotDate": current_date_formatted, 
+							"snapshotDate": current_date_formatted,
 							"timestamp": current_date }
 			media_json_list.append(reduced_json)
 	return media_json_list
-	
 
-	
+
+
 
 
 def main():
-	
+
 	# Get credentials and token
 	credentials = _get_credentials()
 	token = credentials.token
@@ -285,6 +279,7 @@ def main():
 ```
 
 Code **requirements.txt** file:
+
 ```
 Authlib==1.0.1
 gcloud==0.18.3
@@ -305,162 +300,155 @@ PyYAML==6.0
 
 ```
 
-
 ## GTM API Output Example
 
 The output JSON from when using GTM's API in `list` action follow the pattern bellow:
 
 ```json
 {
-    "tag": [
+  "tag": [
+    {
+      "accountId": "6054543647",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      },
+      "containerId": "92108926",
+      "fingerprint": "1661519637804",
+      "firingTriggerId": ["2147479553"],
+      "monitoringMetadata": {
+        "map": [
+          {
+            "key": "exclude",
+            "type": "template",
+            "value": "false"
+          },
+          {
+            "key": "tracking_id",
+            "type": "template",
+            "value": "1123"
+          },
+          {
+            "key": "media_name",
+            "type": "template",
+            "value": "Hello"
+          }
+        ],
+        "type": "map"
+      },
+      "monitoringMetadataTagNameKey": "name",
+      "name": "Say Hello",
+      "parameter": [
         {
-            "accountId": "6054543647",     
-            "consentSettings": {
-                "consentStatus": "notSet"  
-            },
-            "containerId": "92108926",     
-            "fingerprint": "1661519637804",
-            "firingTriggerId": [
-                "2147479553"
-            ],
-            "monitoringMetadata": {
-                "map": [
-                    {
-                        "key": "exclude",
-                        "type": "template",
-                        "value": "false"
-                    },
-                    {
-                        "key": "tracking_id",
-                        "type": "template",
-                        "value": "1123"
-                    },
-                    {
-                        "key": "media_name",
-                        "type": "template",
-                        "value": "Hello"
-                    }
-                ],
-                "type": "map"
-            },
-            "monitoringMetadataTagNameKey": "name",
-            "name": "Say Hello",
-            "parameter": [
-                {
-                    "key": "html",
-                    "type": "template",
-                    "value": "<script>\nconsole.log(\"HELLO!!!\");\n</script>"
-                },
-                {
-                    "key": "supportDocumentWrite",
-                    "type": "boolean",
-                    "value": "false"
-                }
-            ],
-            "path": "accounts/6054543647/containers/92108926/workspaces/2/tags/3",
-            "tagFiringOption": "oncePerEvent",
-            "tagId": "3",
-            "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6054543647/containers/92108926/workspaces/2/tags/3?apiLink=tag",
-            "type": "html",
-            "workspaceId": "2"
+          "key": "html",
+          "type": "template",
+          "value": "<script>\nconsole.log(\"HELLO!!!\");\n</script>"
         },
         {
-            "accountId": "6054543647",
-            "consentSettings": {
-                "consentStatus": "notSet"
-            },
-            "containerId": "92108926",
-            "fingerprint": "1661516539340",
-            "firingTriggerId": [
-                "2147479553"
-            ],
-            "monitoringMetadata": {
-                "type": "map"
-            },
-            "name": "Tag agora VAI",
-            "parameter": [
-                {
-                    "key": "html",
-                    "type": "template",
-                    "value": "<script>console.log(\"AGORA VAI DISPARADA!\");</script>"
-                },
-                {
-                    "key": "supportDocumentWrite",
-                    "type": "boolean",
-                    "value": "false"
-                }
-            ],
-            "path": "accounts/6054543647/containers/92108926/workspaces/2/tags/4",
-            "tagFiringOption": "oncePerEvent",
-            "tagId": "4",
-            "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6054543647/containers/92108926/workspaces/2/tags/4?apiLink=tag",
-            "type": "html",
-            "workspaceId": "2"
-        },
-        {
-            "accountId": "6054543647",
-            "consentSettings": {
-                "consentStatus": "notSet"
-            },
-            "containerId": "92108926",
-            "fingerprint": "1661517732659",
-            "firingTriggerId": [
-                "6"
-            ],
-            "monitoringMetadata": {
-                "type": "map"
-            },
-            "name": "DQ - MEDIA QUALITY - CF",
-            "parameter": [
-                {
-                    "key": "fetchReference",
-                    "type": "template",
-                    "value": "codigo do fetch"
-                },
-                {
-                    "key": "clientId",
-                    "type": "template",
-                    "value": "11234567"
-                },
-                {
-                    "key": "cfEndpoint",
-                    "type": "template",
-                    "value": "https://www.meuendpointwwwwwwwwwwwwwwwwwwwwwwwwwww.cloudfunctions.com"
-                },
-                {
-                    "key": "method",
-                    "type": "template",
-                    "value": "post"
-                },
-                {
-                    "key": "typeEndpoint",
-                    "type": "template",
-                    "value": "cf"
-                },
-                {
-                    "key": "autoCollect",
-                    "type": "boolean",
-                    "value": "true"
-                },
-                {
-                    "key": "domain",
-                    "type": "template",
-                    "value": "www.dp6.com.br"
-                },
-                {
-                    "key": "sample",
-                    "type": "template",
-                    "value": "100"
-                }
-            ],
-            "path": "accounts/6054543647/containers/92108926/workspaces/2/tags/7",
-            "tagFiringOption": "oncePerEvent",
-            "tagId": "7",
-            "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6054543647/containers/92108926/workspaces/2/tags/7?apiLink=tag",
-            "type": "cvt_92108926_5",
-            "workspaceId": "2"
+          "key": "supportDocumentWrite",
+          "type": "boolean",
+          "value": "false"
         }
-    ]
+      ],
+      "path": "accounts/6054543647/containers/92108926/workspaces/2/tags/3",
+      "tagFiringOption": "oncePerEvent",
+      "tagId": "3",
+      "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6054543647/containers/92108926/workspaces/2/tags/3?apiLink=tag",
+      "type": "html",
+      "workspaceId": "2"
+    },
+    {
+      "accountId": "6054543647",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      },
+      "containerId": "92108926",
+      "fingerprint": "1661516539340",
+      "firingTriggerId": ["2147479553"],
+      "monitoringMetadata": {
+        "type": "map"
+      },
+      "name": "Tag agora VAI",
+      "parameter": [
+        {
+          "key": "html",
+          "type": "template",
+          "value": "<script>console.log(\"AGORA VAI DISPARADA!\");</script>"
+        },
+        {
+          "key": "supportDocumentWrite",
+          "type": "boolean",
+          "value": "false"
+        }
+      ],
+      "path": "accounts/6054543647/containers/92108926/workspaces/2/tags/4",
+      "tagFiringOption": "oncePerEvent",
+      "tagId": "4",
+      "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6054543647/containers/92108926/workspaces/2/tags/4?apiLink=tag",
+      "type": "html",
+      "workspaceId": "2"
+    },
+    {
+      "accountId": "6054543647",
+      "consentSettings": {
+        "consentStatus": "notSet"
+      },
+      "containerId": "92108926",
+      "fingerprint": "1661517732659",
+      "firingTriggerId": ["6"],
+      "monitoringMetadata": {
+        "type": "map"
+      },
+      "name": "DQ - MEDIA QUALITY - CF",
+      "parameter": [
+        {
+          "key": "fetchReference",
+          "type": "template",
+          "value": "codigo do fetch"
+        },
+        {
+          "key": "clientId",
+          "type": "template",
+          "value": "11234567"
+        },
+        {
+          "key": "cfEndpoint",
+          "type": "template",
+          "value": "https://www.meuendpointwwwwwwwwwwwwwwwwwwwwwwwwwww.cloudfunctions.com"
+        },
+        {
+          "key": "method",
+          "type": "template",
+          "value": "post"
+        },
+        {
+          "key": "typeEndpoint",
+          "type": "template",
+          "value": "cf"
+        },
+        {
+          "key": "autoCollect",
+          "type": "boolean",
+          "value": "true"
+        },
+        {
+          "key": "domain",
+          "type": "template",
+          "value": "www.dp6.com.br"
+        },
+        {
+          "key": "sample",
+          "type": "template",
+          "value": "100"
+        }
+      ],
+      "path": "accounts/6054543647/containers/92108926/workspaces/2/tags/7",
+      "tagFiringOption": "oncePerEvent",
+      "tagId": "7",
+      "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6054543647/containers/92108926/workspaces/2/tags/7?apiLink=tag",
+      "type": "cvt_92108926_5",
+      "workspaceId": "2"
+    }
+  ]
 }
 ```
 

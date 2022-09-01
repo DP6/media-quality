@@ -21,7 +21,6 @@
 
 A solução _Media Quality_ tem como objetivo acompanhar a saúde e volumetria de disparos das tags de mídia dentro do GTM, garantindo que modificações e atualizações no container não gere um impacto negativo no funcionamento das tags, tornando ágil o processo de identificação e correção de comportamentos inesperados na coleta de mídia. Os dados dos eventos podem ser enviados para o Google Analytics 4 ou para o BigQuery, através do uso do Google Cloud Functions.
 
-
 ## Arquitetura de dados
 
 Quando uma tag de mídia é disparada, a tag de Media Quality é acionada e envia os dados do evento para o GA4 e/ou cloud function. Enquanto os dados dos eventos no GA4 somente ficam disponíveis no dia seguinte, com a utilização de cloud functions o monitoramento ocorre em tempo real.
@@ -89,7 +88,6 @@ A seguir são listadas algumas etapas de configuração:
 Opcional:
 
 3. [Configuração de coleta de informações sobre tags existentes no GTM](https://github.com/DP6/media-quality/blob/master/README-GTM-API.md).
-
 
 ## Dashboard de acompanhamento
 
