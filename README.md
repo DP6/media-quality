@@ -46,6 +46,7 @@ Dados de mídia que serão enviados na ferramenta escolhida.
 | media_name      | Nome da mídia que foi disparada               |
 | tracking_id     | Id de acompanhamento da mídia disparada       |
 | media_event     | Nome do evento disparado                      |
+| tag_id          | Id da tag da tag disparada no GTM             |
 | tag_name        | Nome completo da tag disparada no GTM         |
 | status          | Status de disparo da tag                      |
 | datalayer_event | Nome do evento do DataLayer que acionou a tag |

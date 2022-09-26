@@ -284,6 +284,7 @@ function sendToGa4() {
               media_name: data.autoCollect ? entry.media_name : entry.name.split(' - ')[0].split(' (')[0],
               tracking_id: entry.tracking_id,
               media_event: data.autoCollect ? entry.media_event : entry.name.split(' - ')[1],
+              tag_id: entry.id,
               tag_name: entry.name,
               status: entry.status,
               datalayer_event: event
@@ -318,6 +319,7 @@ function sendToCF(method) {
                 media_name: data.autoCollect ? entry.media_name : entry.name.split(' - ')[0].split(' (')[0],
                 tracking_id: entry.tracking_id,
                 media_event: data.autoCollect ? entry.media_event : entry.name.split(' - ')[1],
+                tag_id: entry.id,
                 tag_name: entry.name,
                 status: entry.status,
                 datalayer_event: event
@@ -523,7 +525,7 @@ ___WEB_PERMISSIONS___
           "key": "environments",
           "value": {
             "type": 1,
-            "string": "all"
+            "string": "debug"
           }
         }
       ]

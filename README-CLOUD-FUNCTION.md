@@ -57,6 +57,12 @@ Ao criar a tabela selecione a opção para realizar o particionamento diário do
     maxLength: '100',
   },
   {
+    name: 'tag_id',
+    type: 'STRING',
+    mode: 'NULLABLE',
+    description: 'ID da tag disparada no GTM',
+    maxLength: '100',
+  ,{
     name: 'tag_name',
     type: 'STRING',
     mode: 'NULLABLE',
@@ -102,6 +108,7 @@ Os dados em formato JSON recebidos pela function estão no seguinte formato:
     "media_name": "media_name",
     "tracking_id": "123",
     "media_event": "media_event",
+    "tag_id": "3"
     "tag_name": "tag_name",
     "status": "status",
     "datalayer_event": "datalayer_event",
@@ -121,66 +128,75 @@ As informações provenientes da URL são organizadas em um dicionário após a 
 
 ```javascript
 // Import the Google Cloud client library
-const { BigQuery } = require('@google-cloud/bigquery');
+const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 // Request origin allowed in cloud function
 var request_origin = process.env.REQUEST_ORIGIN;
-request_origin = request_origin.split(',');
+request_origin = request_origin.split(",")
 
-// Select what kind of data req.body contains. If the data
+// Select what kind of data req.body contains. If the data 
 // comes from sendPixel method (used on GTM custom template) use "url" else use "json"
 const input_option = 'json'; // url ou json
 
 async function insertRowsAsStream(request, input_option) {
-  const datasetId = 'dp6_media_quality';
-  const tableId = 'media-quality-raw';
-  var json_data;
 
-  if (input_option == 'url') {
-    const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
+    const datasetId = 'dp6_media_quality';
+    const tableId = 'media-quality-raw';
+    var json_data;
+    var json_data_raw; 
 
-    json_data = {
-      client_id: url.match('client_id=([^&]+)')[1],
-      media_name: url.match('media_name=([^&]+)')[1],
-      tracking_id: url.match('tracking_id=([^&]+)')[1],
-      media_event: url.match('media_event=([^&]+)')[1],
-      tag_name: url.match('tag_name=([^&]+)')[1],
-      status: url.match('status=([^&]+)')[1],
-      datalayer_event: url.match('datalayer_event=([^&]+)')[1],
-      timestamp: Date.now() / 1000,
-    };
-  }
-
-  if (input_option == 'json') {
-    try {
-      // Parse a JSON
-      json_data = JSON.parse(request.body);
-    } catch (e) {
-      json_data = request.body;
+    if (input_option == "url"){
+      const url = decodeURI(request.protocol + '://' + request.get('host') + request.originalUrl);
+ 
+      json_data = {
+        client_id: url.match("client_id=([^&]+)")[1],
+        media_name: url.match("media_name=([^&]+)")[1],
+        tracking_id: url.match("tracking_id=([^&]+)")[1],
+        media_event: url.match("media_event=([^&]+)")[1],
+        tag_id: url.match("tag_id=([^&]+)")[1],
+        tag_name: url.match("tag_name=([^&]+)")[1],
+        status: url.match("status=([^&]+)")[1],
+        datalayer_event: url.match("datalayer_event=([^&]+)")[1],
+        timestamp: Date.now() / 1000,
+        page: url.match("page=([^&]+)")[1],
+        container_version: url.match("container_version=([^&]+)")[1],
+      };
     }
 
-    json_data['timestamp'] = Date.now() / 1000;
+    if (input_option == "json"){
+      try {
+        // Parse a JSON
+        json_data_raw = JSON.parse(request.body); 
+      } catch (e) {
+        json_data_raw = request.body;
+      }
+
+      json_data_raw["timestamp"] = Date.now() /1000;
+
+      lst_allowed_fields = ["client_id","media_name", "tracking_id", "media_event", "tag_id", "tag_name", "status", "datalayer_event","timestamp", "page", "container_version"]
+      json_data = Object.fromEntries(Object.entries(json_data_raw).filter(([key]) => lst_allowed_fields.includes(key)));
+
+    }
+    
+
+    
+    // Insert data into a table
+    await bigquery
+      .dataset(datasetId)
+      .table(tableId)
+      .insert(json_data);
   }
 
-  console.log('Enviando payload: ', json_data);
-  // Insert data into a table
-  await bigquery.dataset(datasetId).table(tableId).insert(json_data);
-  console.log(`Inserted rows`);
-}
-
-exports.gtm_monitor = (req, res) => {
-  //console.log("BODY="+ req.body);
-  //console.log('ORIGEM DA REQUISICAO = ' + req.headers.origin);
-  //console.log("HEADER=" + JSON.stringify(req.headers));
-
-  if (req.body && request_origin.includes(req.headers.origin)) {
-    insertRowsAsStream(req, input_option);
-    //console.log('Requisição recebida com sucesso de: ' + req.headers.host);
-    res.sendStatus(200);
-  } else {
-    //console.log('Requisição inválida. Verifique o payload ou a variável REQUEST_ORIGIN...');
-    res.sendStatus(403);
-  }
+exports.gtm_monitor = (req, res) =>{
+    
+    if(req.body && request_origin.includes(req.headers.origin)){
+      insertRowsAsStream(req, input_option);
+      res.sendStatus(200);
+    } else
+    {
+      console.log("Requisição inválida. Verifique o payload ou a variável REQUEST_ORIGIN...");
+      res.sendStatus(403);
+    }
 };
 ```
 

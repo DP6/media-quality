@@ -40,17 +40,17 @@ The data obtained from GTM is stored in BigQuery. For example, was created the d
 
 Table created in BigQuery:
 
-| Column Name     | Description                     |
-| --------------- | ------------------------------- |
-| accountId       | Google Tag Manager account ID   |
-| containerId     | Google Tag Manager container ID |
-| firingTriggerId | Trigger ID                      |
-| workspaceId     | Google Tag Manager workspace ID |
-| name            | Tag name                        |
-| tagId           | Tag ID                          |
-| tagType         | Tag type                        |
-| snapshotDate    | Date of snapshot                |
-| timestamp       | Date and time of data insertion |
+| Column Name      | Description                     |
+| ---------------- | ------------------------------- |
+| account_id       | Google Tag Manager account ID   |
+| container_id     | Google Tag Manager container ID |
+| firingTrigger_id | Trigger ID                      |
+| workspace_id     | Google Tag Manager workspace ID |
+| name             | Tag name                        |
+| tag_id           | Tag ID                          |
+| tag_type         | Tag type                        |
+| snapshot_date    | Date of snapshot                |
+| timestamp        | Date and time of data insertion |
 
 To create the table in BigQuery use the Python function as below:
 
@@ -68,14 +68,15 @@ def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -
 	client.query(f"CREATE SCHEMA IF NOT EXISTS {dataset_name}")
 
 	client.query(f"CREATE TABLE IF NOT EXISTS {project_name}.{dataset_name}.{table_name}  ( \
-				accountId STRING,\
-				containerId STRING, \
-				firingTriggerId STRING, \
-				workspaceId STRING, \
+				account_id STRING,\
+				container_id STRING, \
+				firing_trigger_id STRING, \
+				workspace_id STRING, \
 				name STRING, \
-				tagId STRING, \
-				tagType STRING, \
-				snapshotDate DATE, \
+        tracking_id STRING, \
+				tag_id STRING, \
+				tag_type STRING, \
+				snapshot_date DATE, \
 				timestamp TIMESTAMP	)")
 ```
 
@@ -84,7 +85,6 @@ def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -
 The code is used in Cloud Function to list GTM tags and filter only "Media Tags"
 
 ```python
-
 from google.oauth2 import service_account
 from google.cloud import bigquery
 import google.auth.transport.requests
@@ -94,7 +94,7 @@ import datetime
 from google.auth import default
 
 # ------------------------------------
-RUN_AS_CLOUD_FUNCTION = False # Change if deploy as cloud function
+RUN_AS_CLOUD_FUNCTION = True # Change if deploy as cloud function
 # ------------------------------------
 
 """
@@ -117,42 +117,17 @@ http://localhost:8080
 # Authentication settings
 SCOPES = ['https://www.googleapis.com/auth/tagmanager.readonly', "https://www.googleapis.com/auth/cloud-platform"]
 SERVICE_ACCOUNT_FILE = './credentials/teste-gtm-api-3629bf94ffcb.json' # optional
-API_KEY = "<API KEY code>" # Change values
+API_KEY = "AIzaSyBvG_HlAWbu3iLrGCA91jJ13REDFZRR588" # Change values
 
 # GTM info
-GTM_ACCOUNT = "6054543647" # Change values
-GTM_CONTAINER = "92108926" # Change values
-GTM_WORKSPACE = "2" # Change values
+GTM_ACCOUNT = "21165" # Change values
+GTM_CONTAINER = "22238" # Change values
+GTM_WORKSPACE = "1000120" # Change values
 
 # GCP info
-PROJECT_NAME = "teste-gtm-api" # Change values
-DATASET_NAME = "media_quality" # Change values
+PROJECT_NAME = "dp6-raft-suite" # Change values
+DATASET_NAME = "dp6_media_quality" # Change values
 TABLE_NAME = "media-quality-gtm-tags" # Change values
-
-
-
-def bq_create_media_tags_table(project_name, dataset_name, table_name, client) -> None:
-	r"""Create dataset dataset and table in Big Query
-
-	Args:
-		project_name (string): name of GCP project
-		dataset_name (string): name o Big Query dataset
-		table_name (string): name of table
-		client: Big Query Client instance
-
-	"""
-	client.query(f"CREATE SCHEMA IF NOT EXISTS {dataset_name}")
-
-	client.query(f"CREATE TABLE IF NOT EXISTS {project_name}.{dataset_name}.{table_name}  ( \
-				accountId STRING,\
-				containerId STRING, \
-				firingTriggerId STRING, \
-				workspaceId STRING, \
-				name STRING, \
-				tagId STRING, \
-				tagType STRING, \
-				snapshotDate DATE, \
-				timestamp TIMESTAMP	)")
 
 
 def bq_insert_to_table(data, table_id, client) -> None:
@@ -162,7 +137,7 @@ def bq_insert_to_table(data, table_id, client) -> None:
 		data (list of JSON): data to be inserted into table
 		table_id (string): table id from Big Query in format <projectId>.<datasetId>.<tableName>
 	"""
-
+	
 	table_obj = client.get_table(table_id)
 	errors = client.insert_rows(table=table_obj, rows=data)
 	if errors == []:
@@ -172,11 +147,11 @@ def bq_insert_to_table(data, table_id, client) -> None:
 
 
 def _get_credentials():
-	r""" Get credentials from GCP.
+	r""" Get credentials from GCP. 
 	If constant RUN_AS_CLOUD_FUNCTION is true the credential will be acquired from GCP credential's default.
-
+	
 	If constant RUN_AS_CLOUD_FUNCTION is false the credential will be acquired from JSON file.
-
+	
 	"""
 	credentials = None
 	# Creates a Credentials instance from a service account json file
@@ -194,7 +169,7 @@ def _get_credentials():
 
 def list_tags(gtm_account, gtm_container, gtm_workspace, api_key, token):
 	r""" List all GTM tags
-
+	
 	Args:
 		gtm_account (string): Google Tag Manager account number
 		gtm_container (string): Google Tag Manager container number
@@ -219,52 +194,54 @@ def list_tags(gtm_account, gtm_container, gtm_workspace, api_key, token):
 
 def _parse_media_tags(list_of_tags):
 	r"""Filter media tags and parse data
-
+	
 	Args:
 		list_of_tags (json): dictionary with all tags
-
+	
 	Output:
 		json with parsed data for media tags
 	"""
-
+	
 	media_json_list = []
 	current_date = datetime.datetime.now()
 	current_date_formatted = current_date.strftime("%Y-%m-%d")
 	for tag in list_of_tags["tag"]:
 		add_to_list = False
-
+		tracking_id = "undefined"
+		
 		json_sanity_check = ("monitoringMetadata" in tag) and ("map" in tag["monitoringMetadata"])
 
 		if json_sanity_check == True:
 			for param in tag["monitoringMetadata"]["map"]:
-				if param["key"] == "exclude" and param["value"] == "false":
+				if param.get("key") == "exclude" and param.get("value") == "false":
 					add_to_list = True
-		if add_to_list:
-			reduced_json = { "accountId": tag["accountId"],
-							"containerId": tag["containerId"],
-							"firingTriggerId": tag["firingTriggerId"][0],
-							"workspaceId": tag["workspaceId"],
+				if  param.get("key") == "tracking_id":
+					tracking_id = param["value"]
+						
+		if add_to_list:				
+			reduced_json = { "account_id": tag["accountId"],
+							"container_id": tag["containerId"],
+							"firing_trigger_id": tag["firingTriggerId"][0],
+							"workspace_id": tag["workspaceId"],
 							"name": tag["name"],
-							"tagId": tag["tagId"],
-							"tagType": tag["type"],
-							"snapshotDate": current_date_formatted,
+							"tracking_id": tracking_id,
+							"tag_id": tag["tagId"],
+							"tag_type": tag["type"],
+							"snapshot_date": current_date_formatted, 
 							"timestamp": current_date }
 			media_json_list.append(reduced_json)
 	return media_json_list
 
+	
 
 
-
-
-def main():
-
+def main(request):
+	
 	# Get credentials and token
 	credentials = _get_credentials()
 	token = credentials.token
 	# Create Big Query client
 	bq_client = bigquery.Client(credentials=credentials)
-	# Create schema and BigQuery table
-	# bq_create_media_tags_table(project_name=PROJECT_NAME, dataset_name=DATASET_NAME, table_name=TABLE_NAME, client=bq_client)
 	# Get list of tags from Google Tag Manager (GTM)
 	list_of_tags = list_tags(gtm_account=GTM_ACCOUNT, gtm_container=GTM_CONTAINER, gtm_workspace=GTM_WORKSPACE, api_key=API_KEY, token=token)
 	# Filter media tags and parse data
@@ -274,9 +251,6 @@ def main():
 
 	if RUN_AS_CLOUD_FUNCTION:
 		return "Success", 200
-
-
-
 ```
 
 Code **requirements.txt** file:
