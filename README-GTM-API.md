@@ -137,7 +137,7 @@ def bq_insert_to_table(data, table_id, client) -> None:
 		data (list of JSON): data to be inserted into table
 		table_id (string): table id from Big Query in format <projectId>.<datasetId>.<tableName>
 	"""
-	
+
 	table_obj = client.get_table(table_id)
 	errors = client.insert_rows(table=table_obj, rows=data)
 	if errors == []:
@@ -147,11 +147,11 @@ def bq_insert_to_table(data, table_id, client) -> None:
 
 
 def _get_credentials():
-	r""" Get credentials from GCP. 
+	r""" Get credentials from GCP.
 	If constant RUN_AS_CLOUD_FUNCTION is true the credential will be acquired from GCP credential's default.
-	
+
 	If constant RUN_AS_CLOUD_FUNCTION is false the credential will be acquired from JSON file.
-	
+
 	"""
 	credentials = None
 	# Creates a Credentials instance from a service account json file
@@ -169,7 +169,7 @@ def _get_credentials():
 
 def list_tags(gtm_account, gtm_container, gtm_workspace, api_key, token):
 	r""" List all GTM tags
-	
+
 	Args:
 		gtm_account (string): Google Tag Manager account number
 		gtm_container (string): Google Tag Manager container number
@@ -194,21 +194,21 @@ def list_tags(gtm_account, gtm_container, gtm_workspace, api_key, token):
 
 def _parse_media_tags(list_of_tags):
 	r"""Filter media tags and parse data
-	
+
 	Args:
 		list_of_tags (json): dictionary with all tags
-	
+
 	Output:
 		json with parsed data for media tags
 	"""
-	
+
 	media_json_list = []
 	current_date = datetime.datetime.now()
 	current_date_formatted = current_date.strftime("%Y-%m-%d")
 	for tag in list_of_tags["tag"]:
 		add_to_list = False
 		tracking_id = "undefined"
-		
+
 		json_sanity_check = ("monitoringMetadata" in tag) and ("map" in tag["monitoringMetadata"])
 
 		if json_sanity_check == True:
@@ -217,8 +217,8 @@ def _parse_media_tags(list_of_tags):
 					add_to_list = True
 				if  param.get("key") == "tracking_id":
 					tracking_id = param["value"]
-						
-		if add_to_list:				
+
+		if add_to_list:
 			reduced_json = { "account_id": tag["accountId"],
 							"container_id": tag["containerId"],
 							"firing_trigger_id": tag["firingTriggerId"][0],
@@ -227,16 +227,16 @@ def _parse_media_tags(list_of_tags):
 							"tracking_id": tracking_id,
 							"tag_id": tag["tagId"],
 							"tag_type": tag["type"],
-							"snapshot_date": current_date_formatted, 
+							"snapshot_date": current_date_formatted,
 							"timestamp": current_date }
 			media_json_list.append(reduced_json)
 	return media_json_list
 
-	
+
 
 
 def main(request):
-	
+
 	# Get credentials and token
 	credentials = _get_credentials()
 	token = credentials.token
